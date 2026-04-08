@@ -136,10 +136,14 @@ export async function sendMessageToGemini(messages) {
   const maxAttempts = GEMINI_API_KEYS.length;
   let lastError = "Unknown error";
 
-  while (attempts < maxAttempts) {
+  console.log(`[FinMind AI] Starting chat with ${maxAttempts} keys. Starting at index ${currentIndex % maxAttempts}`);
 
-    const activeKey = GEMINI_API_KEYS[currentIndex % maxAttempts];
+  while (attempts < maxAttempts) {
+    const keyIdx = currentIndex % maxAttempts;
+    const activeKey = GEMINI_API_KEYS[keyIdx];
     const url = getGeminiUrl(activeKey);
+
+    console.log(`[FinMind AI] Trying API key #${keyIdx + 1}...`);
 
     try {
       const response = await fetch(url, {
