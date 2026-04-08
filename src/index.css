@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0A0A0F;
+  --color-surface: #12121A;
+  --color-elevated: #1C1C28;
+  --color-primary: #7B5CF0;
+  --color-primary-dim: #3D2D8A;
+  --color-success: #22C55E;
+  --color-danger: #EF4444;
+  --color-text-primary: #F4F4F6;
+  --color-text-secondary: #9090A8;
+  --color-border: #2A2A3A;
+  
+  --font-display: Epilogue, sans-serif;
+  --font-body: Manrope, sans-serif;
+  --font-mono: JetBrains Mono, monospace;
+
+  --radius-card: 16px;
+  --radius-btn: 8px;
+  --radius-pill: 50px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+/* Custom Markdown Styles for Chat */
+.chat-markdown {
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.chat-markdown p {
+  margin-bottom: 0.75rem;
+}
+
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
+  color: white;
+  font-weight: 700;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.chat-markdown h3 { font-size: 1.1rem; }
+
+.chat-markdown ul, .chat-markdown ol {
+  margin-bottom: 1rem;
+  padding-left: 1.25rem;
+}
+
+.chat-markdown ul { list-style-type: disc; }
+.chat-markdown ol { list-style-type: decimal; }
+
+.chat-markdown li {
+  margin-bottom: 0.25rem;
+}
+
+.chat-markdown strong {
+  color: white;
+  font-weight: 600;
+}
+
+.chat-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chat-markdown th, .chat-markdown td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.chat-markdown th {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chat-markdown tr:last-child td {
+  border-bottom: none;
+}
+
+.chat-markdown code {
+  background: rgba(123, 92, 240, 0.15);
+  color: var(--color-primary);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.chat-markdown pre {
+  background: #0D0D12;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.chat-markdown blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 1rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 1rem 0;
+}
+
+@layer utilities {
+  .glow-shadow {
+    box-shadow: 0 0 32px rgba(123, 92, 240, 0.12);
+  }
+  .glow-shadow-intense {
+    box-shadow: 0 0 24px rgba(123, 92, 240, 0.5);
+  }
+}
