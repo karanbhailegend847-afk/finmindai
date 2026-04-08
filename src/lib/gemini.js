@@ -1,27 +1,16 @@
-const GEMINI_API_KEYS = [
-  'AIzaSyDKjJOrCr_xAIOG706n_uShU1hW9KibEng',
-  'AIzaSyBuHSLhi7xvbpm68_PO5wmBw0wbEcCTfkY',
-  'AIzaSyDizSfsgcqJpYvHp4puTVulumDkfk668YA',
-  'AIzaSyC0_TPqzoYH-pIwPMFUVKHOGHIjrPs9gg4',
-  'AIzaSyCb0YfzwGIbjONyuWMtvgtLxipnp3hV02I',
-  'AIzaSyCMwPdUBkf5SgHDxR498tSZEpYrkgTOAuc',
-  'AIzaSyCrNH_dHcKNfVtiU9iOi4Jd3EpHBhOkg5s',
-  'AIzaSyAyOtsZe5waRozCAG2wtCdT9FxpR-0cTRk',
-  'AIzaSyA-xLy2MC50YQqTJJgQTvjzfPdqlF3DMKc',
-  'AIzaSyB1wBKmb2k0n6FlsrCLZXEauWcmB6-Ftng',
-  'AIzaSyCdYoKWjS4ZSJ3vK_04fjXuPWLQtkQAPck',
-  'AIzaSyDQoO89kPFxiyRv2sE_MsBkA9EnFeTSYXc',
-  'AIzaSyCNCmMkMW-saBqWlon5DM-sFGD7kobOcDg',
-  'AIzaSyDP0-Y3alQNhZgpMXUgnabe_O1xrMeiNK0',
-  'AIzaSyCem0pSyEN7MpVRGXWO0fZudgKfVV0x1tA',
-  'AIzaSyCQJLc1kEs8B0nDKA1NWqCRWGRpfamg0mo',
-  'AIzaSyDnt5TLAANo4L77Ubxij7VpNkrvCIAWB_I',
-  'AIzaSyAJyI9Zv-FKmgUXBCEUzgku7S5i7t4UukY',
-  'AIzaSyDUDQjN5CYLjXDCWzHBP-UW4gpegJJVCeY',
-  'AIzaSyANtcb3bF01Nbh4HT64OCQ68j9Yp5Of1bQ',
-  'AIzaSyDtCfOwr67kmmq-o0uEvbK1zVBZMlGrjBQ',
-  'AIzaSyD4mOPUiFA32BcQB92cpG_n_zUBIDXEKns'
-];
+const getKeysFromEnv = () => {
+  const multiKeys = import.meta.env.VITE_GEMINI_API_KEYS;
+  if (multiKeys) {
+    return multiKeys.split(',').map(k => k.trim()).filter(Boolean);
+  }
+  const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (singleKey) {
+    return [singleKey.trim()];
+  }
+  return [];
+};
+
+const GEMINI_API_KEYS = getKeysFromEnv();
 
 const GEMINI_MODEL = 'gemini-2.5-flash'; 
 
@@ -114,6 +103,10 @@ You specialize in ALL aspects of personal and business finance:
  * @returns {Promise<string>} - AI response text
  */
 export async function sendMessageToGemini(messages) {
+  if (!GEMINI_API_KEYS || GEMINI_API_KEYS.length === 0) {
+    throw new Error('No Gemini API keys found. Please set VITE_GEMINI_API_KEYS (comma-separated) or VITE_GEMINI_API_KEY in your environment variables.');
+  }
+
   const contents = messages.map((msg) => ({
     role: msg.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: msg.content }],
@@ -144,6 +137,7 @@ export async function sendMessageToGemini(messages) {
   let lastError = "Unknown error";
 
   while (attempts < maxAttempts) {
+
     const activeKey = GEMINI_API_KEYS[currentIndex % maxAttempts];
     const url = getGeminiUrl(activeKey);
 
