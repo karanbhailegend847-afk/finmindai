@@ -1,7 +1,7 @@
 const getKeysFromEnv = () => {
   const multiKeys = import.meta.env.VITE_GEMINI_API_KEYS;
   if (multiKeys) {
-    return multiKeys.split(',').map(k => k.trim()).filter(Boolean);
+    return multiKeys.split(/[,\n]+/).map(k => k.trim()).filter(Boolean);
   }
   const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (singleKey) {
