@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import LandingPage from './LandingPage';
 import DashboardLayout from './DashboardLayout';
 import AuthPage from './AuthPage';
@@ -52,6 +53,7 @@ function App() {
             } 
           />
         </Routes>
+        <Analytics />
       </Router>
     </AuthProvider>
   );
