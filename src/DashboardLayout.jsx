@@ -158,6 +158,9 @@ const DashboardLayout = () => {
 
       const aiResponse = await sendMessageToGemini(apiMessages);
       appendAIMessage(chatId, aiResponse);
+      
+      // Deduct credits only after success
+      await deductCredits(3);
     } catch (error) {
       console.error('Gemini API error:', error);
       appendAIMessage(
@@ -181,12 +184,8 @@ const DashboardLayout = () => {
       return;
     }
 
-    // Deduct credits in Firestore
-    const success = await deductCredits(3);
-    if (!success) {
-      alert("Failed to deduct credits. Please check your connection.");
-      return;
-    }
+    // Skip deduction here — we will deduct only AFTER the AI successfully responds
+    // to ensure user doesn't lose credits for failed API calls.
 
     const userMsg = { role: 'user', content: text.trim(), timestamp: Date.now() };
 

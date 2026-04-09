@@ -11,6 +11,7 @@ const getKeysFromEnv = () => {
 };
 
 const GEMINI_API_KEYS = getKeysFromEnv();
+console.log(`[FinMind AI] Loaded ${GEMINI_API_KEYS.length} Gemini API keys.`);
 
 const GEMINI_MODEL = 'gemini-2.5-flash'; 
 
@@ -113,7 +114,7 @@ export async function sendMessageToGemini(messages) {
   }));
 
   const body = {
-    system_instruction: {
+    systemInstruction: {
       parts: [{ text: SYSTEM_PROMPT }],
     },
     contents,
