@@ -1,17 +1,27 @@
 const getKeysFromEnv = () => {
   const multiKeys = import.meta.env.VITE_GEMINI_API_KEYS;
+  let keys = [];
+  
   if (multiKeys) {
-    return multiKeys.split(/[,\n]+/).map(k => k.trim()).filter(Boolean);
+    keys = multiKeys.split(/[,\n]+/).map(k => k.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+  } else {
+    const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (singleKey) {
+      keys = [singleKey.trim().replace(/^["']|["']$/g, '')];
+    }
   }
-  const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (singleKey) {
-    return [singleKey.trim()];
-  }
-  return [];
+
+  // Debug logging with masking
+  console.log(`[FinMind AI] Detected ${keys.length} API keys:`);
+  keys.forEach((k, i) => {
+    const masked = k.length > 8 ? `${k.slice(0, 4)}...${k.slice(-4)}` : '****';
+    console.log(`  Key #${i + 1}: ${masked}`);
+  });
+
+  return keys;
 };
 
 const GEMINI_API_KEYS = getKeysFromEnv();
-console.log(`[FinMind AI] Loaded ${GEMINI_API_KEYS.length} Gemini API keys.`);
 
 const GEMINI_MODEL = 'gemini-2.5-flash'; 
 
@@ -144,7 +154,7 @@ export async function sendMessageToGemini(messages) {
     const activeKey = GEMINI_API_KEYS[keyIdx];
     const url = getGeminiUrl(activeKey);
 
-    console.log(`[FinMind AI] Trying API key #${keyIdx + 1}...`);
+    console.log(`[FinMind AI] Attempt ${attempts + 1}/${maxAttempts} using key #${keyIdx + 1}...`);
 
     try {
       const response = await fetch(url, {
@@ -162,7 +172,14 @@ export async function sendMessageToGemini(messages) {
       } else {
         const errorData = await response.json().catch(() => ({}));
         lastError = errorData?.error?.message || response.status.toString();
-        console.warn(`Gemini API key ${currentIndex % maxAttempts} failed:`, lastError);
+        const isQuotaError = lastError.toLowerCase().includes('quota') || response.status === 429;
+        
+        console.warn(`[FinMind AI] Key #${keyIdx + 1} failed:`, lastError);
+        
+        if (isQuotaError && attempts < maxAttempts - 1) {
+          console.log(`[FinMind AI] Quota exceeded for Key #${keyIdx + 1}. Jumping to next key in 1s...`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1s jitter for 429
+        }
         
         currentIndex++;
         attempts++;
@@ -170,7 +187,7 @@ export async function sendMessageToGemini(messages) {
       }
     } catch (error) {
       lastError = error.message;
-      console.warn(`Fetch error with key ${currentIndex % maxAttempts}:`, lastError);
+      console.warn(`[FinMind AI] Connection error with key #${keyIdx + 1}:`, lastError);
       currentIndex++;
       attempts++;
     }
