@@ -9,12 +9,10 @@ import {
 } from 'lucide-react';
 
 const links = [
-    { title: 'Features', href: '#' },
-    { title: 'Solution', href: '#' },
-    { title: 'Customers', href: '#' },
-    { title: 'Pricing', href: '#' },
-    { title: 'Help', href: '#' },
-    { title: 'About', href: '#' },
+    { title: 'Platform', href: '/platform' },
+    { title: 'Features', href: '/features' },
+    { title: 'Vision', href: '/vision' },
+    { title: 'Pricing', href: '/pricing' },
 ];
 
 export default function FooterSection() {

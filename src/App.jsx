@@ -5,6 +5,10 @@ import DashboardLayout from './DashboardLayout';
 import AuthPage from './AuthPage';
 import PremiumPage from './PremiumPage';
 import AccountPage from './AccountPage';
+import Platform from './pages/Platform';
+import Features from './pages/Features';
+import Vision from './pages/Vision';
+import Pricing from './pages/Pricing';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -28,6 +32,10 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/platform" element={<Platform />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/vision" element={<Vision />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route 
             path="/dashboard" 
             element={
