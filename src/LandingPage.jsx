@@ -72,11 +72,11 @@ const LandingPage = () => {
           >
             {[...Array(2)].map((_, i) => (
               <React.Fragment key={i}>
-                <span className="flex items-center gap-4"><Sparkles className="w-6 h-6 text-primary/40"/> Expense Tracking</span>
-                <span className="flex items-center gap-4"><Sparkles className="w-6 h-6 text-primary/40"/> AI Assistant</span>
-                <span className="flex items-center gap-4"><Sparkles className="w-6 h-6 text-primary/40"/> Goal Planning</span>
-                <span className="flex items-center gap-4"><Sparkles className="w-6 h-6 text-primary/40"/> Visual Reports</span>
-                <span className="flex items-center gap-4"><Sparkles className="w-6 h-6 text-primary/40"/> Deep Insights</span>
+                <span className="flex items-center gap-4"><img src="/logo.png" className="w-6 h-6 object-contain rounded-md opacity-50 grayscale hover:grayscale-0 transition-all"/> Expense Tracking</span>
+                <span className="flex items-center gap-4"><img src="/logo.png" className="w-6 h-6 object-contain rounded-md opacity-50 grayscale hover:grayscale-0 transition-all"/> AI Assistant</span>
+                <span className="flex items-center gap-4"><img src="/logo.png" className="w-6 h-6 object-contain rounded-md opacity-50 grayscale hover:grayscale-0 transition-all"/> Goal Planning</span>
+                <span className="flex items-center gap-4"><img src="/logo.png" className="w-6 h-6 object-contain rounded-md opacity-50 grayscale hover:grayscale-0 transition-all"/> Visual Reports</span>
+                <span className="flex items-center gap-4"><img src="/logo.png" className="w-6 h-6 object-contain rounded-md opacity-50 grayscale hover:grayscale-0 transition-all"/> Deep Insights</span>
               </React.Fragment>
             ))}
           </motion.div>

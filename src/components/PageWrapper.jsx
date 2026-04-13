@@ -28,11 +28,9 @@ const PageWrapper = ({ children }) => {
       >
         <div 
           onClick={() => navigate('/')}
-          className="font-display font-bold text-2xl tracking-tighter flex items-center gap-1.5 cursor-pointer group"
+          className="font-display font-bold text-2xl tracking-tighter flex items-center gap-2 cursor-pointer group"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dim flex items-center justify-center shadow-[0_0_15px_rgba(123,92,240,0.5)] group-hover:scale-110 transition-transform">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
+          <img src="/logo.png" alt="FinMind Logo" className="w-8 h-8 object-contain rounded-lg shadow-[0_0_15px_rgba(123,92,240,0.4)] group-hover:scale-110 transition-transform" />
           FinMind
         </div>
         

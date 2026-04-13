@@ -124,7 +124,7 @@ function MessageBubble({ message, isLast }) {
                     ? "bg-primary/20 text-primary"
                     : "bg-gradient-to-br from-primary to-violet-600 text-white"
             )}>
-                {isUser ? <User size={15} /> : <Sparkles size={14} />}
+                {isUser ? <User size={15} /> : <img src="/logo.png" className="w-5 h-5 object-contain" />}
             </div>
 
             {/* Message */}
@@ -170,7 +170,7 @@ function TypingIndicator() {
             transition={{ duration: 0.2 }}
         >
             <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 bg-gradient-to-br from-primary to-violet-600 text-white">
-                <Sparkles size={14} />
+                <img src="/logo.png" className="w-5 h-5 object-contain" />
             </div>
             <div className="text-left">
                 <div className="text-xs font-medium mb-1.5 text-text-secondary/60">FinMind AI</div>
@@ -405,9 +405,12 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
                                 transition={{ delay: 0.2, duration: 0.5 }}
                                 className="inline-block"
                             >
-                                <h1 className="font-display text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40 pb-1">
-                                    FinMind Protocol
-                                </h1>
+                                <div className="flex flex-col items-center gap-4">
+                                    <img src="/logo.png" alt="FinMind Logo" className="w-20 h-20 object-contain rounded-3xl shadow-[0_0_50px_rgba(123,92,240,0.3)] mb-2" />
+                                    <h1 className="font-display text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40 pb-1">
+                                        FinMind Protocol
+                                    </h1>
+                                </div>
                                 <motion.div 
                                     className="h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent my-2"
                                     initial={{ width: 0, opacity: 0 }}

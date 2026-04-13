@@ -28,7 +28,7 @@ const PremiumPage = () => {
         currency: "INR",
         name: "FinMind AI",
         description: "Premium Monthly Subscription",
-        image: "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/sparkles.svg",
+        image: "/logo.png",
         handler: async function (response) {
           console.log("Payment Successful:", response.razorpay_payment_id);
           
@@ -106,7 +106,7 @@ const PremiumPage = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-6"
           >
-            <Sparkles size={14} /> The Future of Financial Intelligence
+            <img src="/logo.png" className="w-4 h-4 object-contain" /> The Future of Financial Intelligence
           </motion.div>
           <h1 className="font-display font-black text-5xl md:text-7xl mb-6 tracking-tight">
             Level up your <br />

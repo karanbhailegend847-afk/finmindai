@@ -243,8 +243,9 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-background text-text-primary flex">
       <aside className="w-[260px] fixed h-full border-r border-border bg-surface z-10 flex flex-col">
-        <div className="font-display font-bold text-2xl tracking-tight flex items-center gap-1 px-6 pt-6 pb-4">
-          FinMind<span className="text-primary text-3xl">.</span>
+        <div className="font-display font-bold text-2xl tracking-tight flex items-center gap-2.5 px-6 pt-6 pb-4 cursor-pointer" onClick={() => navigate('/')}>
+          <img src="/logo.png" alt="FinMind Logo" className="w-8 h-8 object-contain rounded-lg" />
+          <span>FinMind<span className="text-primary text-3xl">.</span></span>
         </div>
 
         {/* Credit Display */}

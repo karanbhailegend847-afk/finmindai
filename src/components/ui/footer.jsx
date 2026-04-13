@@ -22,9 +22,10 @@ export default function FooterSection() {
                 <a
                     href="/"
                     aria-label="go home"
-                    className="mx-auto w-fit flex items-center justify-center font-display font-bold text-2xl gap-1.5"
+                    className="mx-auto w-fit flex items-center justify-center font-display font-bold text-2xl gap-2.5"
                 >
-                    FinMind<span className="text-primary text-3xl">.</span>
+                    <img src="/logo.png" alt="FinMind Logo" className="w-8 h-8 object-contain rounded-lg" />
+                    <span>FinMind<span className="text-primary text-3xl">.</span></span>
                 </a>
 
                 <div className="my-8 flex flex-wrap justify-center gap-6 text-sm">

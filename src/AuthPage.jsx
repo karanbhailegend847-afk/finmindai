@@ -62,7 +62,7 @@ const AuthPage = () => {
                         whileHover={{ scale: 1.05 }}
                         className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-[0_0_30px_rgba(123,92,240,0.4)] mb-4"
                     >
-                        <Sparkles className="text-white w-8 h-8" />
+                        <img src="/logo.png" alt="FinMind Logo" className="w-10 h-10 object-contain" />
                     </motion.div>
                     <h1 className="font-display text-3xl font-bold tracking-tight text-white">
                         {isLogin ? 'Access FinMind' : 'Join the Protocol'}
