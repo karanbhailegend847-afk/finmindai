@@ -144,15 +144,30 @@ function MessageBubble({ message, isLast }) {
                         ? "bg-primary/15 text-text-primary rounded-tr-sm text-left"
                         : "bg-surface border border-border text-text-primary/90 rounded-tl-sm"
                 )}>
-                    {isUser ? (
-                        message.content
-                    ) : (
-                        <div className="chat-markdown overflow-x-auto">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {message.content}
-                            </ReactMarkdown>
-                        </div>
-                    )}
+                    {/* Message Content */}
+                    <div className="flex flex-col gap-3">
+                        {message.images && message.images.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-1">
+                                {message.images.map((img, i) => (
+                                    <img 
+                                        key={i} 
+                                        src={img} 
+                                        alt="Uploaded content" 
+                                        className="max-w-[200px] max-h-[200px] rounded-lg object-cover border border-border/50" 
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        {isUser ? (
+                            message.content
+                        ) : (
+                            <div className="chat-markdown overflow-x-auto">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {message.content}
+                                </ReactMarkdown>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </motion.div>
@@ -184,7 +199,7 @@ function TypingIndicator() {
 
 export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true, credits = 0 }) {
     const [value, setValue] = useState("");
-    const [attachments, setAttachments] = useState([]);
+    const [attachments, setAttachments] = useState([]); // Store File objects
     const [isWaitingReply, setIsWaitingReply] = useState(false);
     const [showCommandPalette, setShowCommandPalette] = useState(false);
     const [activeSuggestion, setActiveSuggestion] = useState(-1);
@@ -314,10 +329,26 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
         }
     };
 
-    const handleSendMessage = () => {
-        if (value.trim() && onSendMessage && !isOutOfCredits) {
-            onSendMessage(value.trim());
+    const handleSendMessage = async () => {
+        if ((value.trim() || attachments.length > 0) && onSendMessage && !isOutOfCredits) {
+            setIsWaitingReply(true);
+            
+            // Process images to base64
+            const imagePromises = attachments
+                .filter(file => file.type.startsWith('image/'))
+                .map(file => {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    });
+                });
+            
+            const base64Images = await Promise.all(imagePromises);
+            
+            onSendMessage(value.trim(), base64Images);
             setValue("");
+            setAttachments([]);
             adjustHeight(true);
         }
     };
@@ -328,7 +359,7 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
         if (isOutOfCredits) return;
         const files = Array.from(e.target.files || []);
         if (files.length > 0) {
-            setAttachments(prev => [...prev, ...files.map(f => f.name)]);
+            setAttachments(prev => [...prev, ...files]);
         }
         // Reset so same file can be picked again
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -556,7 +587,7 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
                                             animate={{ opacity: 1, scale: 1 }}
                                             exit={{ opacity: 0, scale: 0.9 }}
                                         >
-                                            <span className="font-mono">{file}</span>
+                                            <span className="font-mono">{file.name}</span>
                                             <button 
                                                 onClick={() => removeAttachment(index)}
                                                 className="text-white/40 hover:text-danger hover:scale-110 transition-all"

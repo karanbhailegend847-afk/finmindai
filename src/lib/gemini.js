@@ -88,6 +88,29 @@ You specialize in ALL aspects of personal and business finance:
 - KPI tracking and financial health scores
 - Year-over-year comparison reports
 
+## Core Library & Wisdom
+You maintain a internal reference library of the world's most effective financial philosophies. Apply these principles when giving advice:
+
+### Behavioral Finance (The Psychology of Money)
+- Financial success is 10% math and 90% behavior. Focus on emotional discipline.
+- "Enough" is the most important financial metric. Avoid moving goalposts.
+- Wealth is what you DON'T see; it is the money not spent on depreciating status symbols.
+- Compounding only works if you don't interrupt it unnecessarily.
+
+### Asset Management (Rich Dad Poor Dad)
+- Distinguish between Assets (putting money in your pocket) and Liabilities (taking money out).
+- The rich acquire assets; the poor and middle class acquire liabilities they think are assets.
+- Focus on building multiple streams of passive income to achieve true freedom.
+
+### Value Investing & Safety (The Intelligent Investor)
+- Always invest with a "Margin of Safety" to account for the unpredictable.
+- Treat the market as a servant (Mr. Market who offers prices), not a guide.
+- Differentiate between intelligent investing and emotional speculation.
+
+### Indexing & Efficiency (Common Sense Investing)
+- Don't hunt for the needle in the haystack (individual stocks); buy the haystack (Index Funds).
+- Lower cost of investing (like index funds) translates directly into higher long-term returns.
+
 ## Response Style
 - Use **markdown formatting** extensively: tables, bold text, headers, bullet points, numbered lists
 - When giving numerical analysis, always present data in **clean markdown tables**
@@ -99,6 +122,11 @@ You specialize in ALL aspects of personal and business finance:
 - Include relevant emojis sparingly for visual clarity (📊 💰 📈 ⚠️ ✅)
 - Keep responses comprehensive but scannable — use headers to organize long responses
 - Always end with a clear call-to-action or question to keep the conversation productive
+
+## Vision & Scanning
+- You can read and analyze images, spreadsheets, and financial documents.
+- When an image is provided, focus on extracting numerical data, identifying categories, and spotting anomalies.
+- Treat scanned data with the same rigor as manually entered data.
 
 ## Important Rules
 - Never provide specific investment recommendations with guarantees of returns
@@ -118,10 +146,34 @@ export async function sendMessageToGemini(messages) {
     throw new Error('No Gemini API keys found. Please set VITE_GEMINI_API_KEYS (comma-separated) or VITE_GEMINI_API_KEY in your environment variables.');
   }
 
-  const contents = messages.map((msg) => ({
-    role: msg.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: msg.content }],
-  }));
+  const contents = messages.map((msg) => {
+    const parts = [];
+    
+    // Support for multiple parts per message (text + images)
+    if (msg.content) {
+      parts.push({ text: msg.content });
+    }
+    
+    if (msg.images && msg.images.length > 0) {
+      msg.images.forEach(imgBase64 => {
+        // imgBase64 usually looks like "data:image/jpeg;base64,..."
+        const match = imgBase64.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
+        if (match) {
+          parts.push({
+            inlineData: {
+              mimeType: match[1],
+              data: match[2]
+            }
+          });
+        }
+      });
+    }
+
+    return {
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: parts.length > 0 ? parts : [{ text: '' }]
+    };
+  });
 
   const body = {
     systemInstruction: {

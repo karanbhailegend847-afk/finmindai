@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Settings, Plus, MessageSquare, MoreHorizontal, Search, Trash2, LogOut, Coins, Crown, User } from 'lucide-react';
+import { Settings, Plus, MessageSquare, MoreHorizontal, Search, Trash2, LogOut, Coins, Crown, User, LayoutDashboard, StickyNote } from 'lucide-react';
 import { AnimatedAIChat } from './components/ui/animated-ai-chat';
 import { sendMessageToGemini } from './lib/gemini';
+import { Whiteboard } from './components/Whiteboard';
 import { useAuth } from './context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -108,6 +109,7 @@ const DashboardLayout = () => {
   const [chats, setChats] = useState(() => loadChats(user?.uid));
   const [activeChatId, setActiveChatId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [view, setView] = useState('chat'); // 'chat' or 'whiteboard'
 
   // Persist chats to localStorage whenever they change
   useEffect(() => {
@@ -154,6 +156,7 @@ const DashboardLayout = () => {
       const apiMessages = currentMessages.map((m) => ({
         role: m.role,
         content: m.content,
+        images: m.images || []
       }));
 
       const aiResponse = await sendMessageToGemini(apiMessages);
@@ -170,7 +173,7 @@ const DashboardLayout = () => {
     }
   };
 
-  const handleSendMessage = useCallback(async (text) => {
+  const handleSendMessage = useCallback(async (text, images = []) => {
     if (!text.trim()) return;
 
     // CREDIT CHECK
@@ -187,7 +190,7 @@ const DashboardLayout = () => {
     // Skip deduction here — we will deduct only AFTER the AI successfully responds
     // to ensure user doesn't lose credits for failed API calls.
 
-    const userMsg = { role: 'user', content: text.trim(), timestamp: Date.now() };
+    const userMsg = { role: 'user', content: text.trim(), images, timestamp: Date.now() };
 
     if (!activeChatId) {
       const newId = 'chat_' + Date.now();
@@ -306,6 +309,31 @@ const DashboardLayout = () => {
           </button>
         </div>
 
+        <div className="px-3 pb-3 space-y-1">
+          <button
+            onClick={() => setView('chat')}
+            className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
+              ${view === 'chat'
+                ? 'bg-primary/10 text-primary border border-primary/20'
+                : 'text-text-secondary hover:bg-elevated/60 hover:text-text-primary border border-transparent'
+              }`}
+          >
+            <MessageSquare size={18} />
+            <span>AI Chat</span>
+          </button>
+          <button
+            onClick={() => setView('whiteboard')}
+            className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
+              ${view === 'whiteboard'
+                ? 'bg-primary/10 text-primary border border-primary/20'
+                : 'text-text-secondary hover:bg-elevated/60 hover:text-text-primary border border-transparent'
+              }`}
+          >
+            <StickyNote size={18} />
+            <span>Whiteboard</span>
+          </button>
+        </div>
+
         {chats.length > 0 && (
           <div className="px-3 pb-2">
             <div className="relative">
@@ -394,12 +422,16 @@ const DashboardLayout = () => {
       </aside>
 
       <main className="ml-[260px] flex-1 flex flex-col min-h-screen">
-        <AnimatedAIChat
-          messages={activeMessages}
-          onSendMessage={handleSendMessage}
-          isNewChat={activeChatId === null}
-          credits={userDataLoading ? 20 : (userData?.credits ?? 20)}
-        />
+        {view === 'chat' ? (
+          <AnimatedAIChat
+            messages={activeMessages}
+            onSendMessage={handleSendMessage}
+            isNewChat={activeChatId === null}
+            credits={userDataLoading ? 20 : (userData?.credits ?? 20)}
+          />
+        ) : (
+          <Whiteboard />
+        )}
       </main>
     </div>
   );
