@@ -97,7 +97,7 @@ const GoalNote = ({ note, onUpdate, onDelete }) => {
 };
 
 export const Whiteboard = () => {
-  const { user } = useAuth();
+  const { user, userData, userDataLoading, deductCredits } = useAuth();
   const [notes, setNotes] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newNote, setNewNote] = useState({ text: '', category: 'Goal' });
@@ -185,6 +185,13 @@ export const Whiteboard = () => {
 
   const handleAISync = async () => {
     if (isSyncing) return;
+
+    // Credit Check
+    if (userData && userData.credits < 3) {
+      alert(`Insufficient credits! You need 3 credits to perform an AI Sync.\n\nYour current balance: ${userData.credits} credits.`);
+      return;
+    }
+
     setIsSyncing(true);
     try {
       // 1. Get recent chats from localStorage (Multi-chat context)
@@ -266,6 +273,8 @@ export const Whiteboard = () => {
 
       if (jsonData && jsonData.suggestions) {
         setSuggestions(jsonData.suggestions);
+        // DEDUCT CREDITS ON SUCCESS
+        await deductCredits(3);
       } else {
         setSuggestions([]);
       }
