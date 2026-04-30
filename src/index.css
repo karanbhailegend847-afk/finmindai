@@ -1,4 +1,19 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap');
+
+:root {
+  --chart-1: #7B5CF0; /* Primary Purple */
+  --chart-2: #22C55E; /* Emerald Growth */
+  --chart-3: #9333EA; /* Deep Purple */
+  --chart-4: #3B82F6; /* Blue Sector */
+  --chart-5: #F97316; /* Orange Risk */
+  
+  --color-1: 0 100% 63%;
+  --color-2: 270 100% 63%;
+  --color-3: 210 100% 63%;
+  --color-4: 195 100% 63%;
+  --color-5: 90 100% 63%;
+}
 
 @theme {
   --color-background: #0A0A0F;
@@ -15,10 +30,39 @@
   --font-display: Epilogue, sans-serif;
   --font-body: Manrope, sans-serif;
   --font-mono: JetBrains Mono, monospace;
+  --font-handwritten: "Gochi Hand", cursive;
 
   --radius-card: 16px;
   --radius-btn: 8px;
   --radius-pill: 50px;
+
+  --color-sparkles: var(--sparkles-color);
+  --color-gradient-primary: var(--gradient-color);
+
+  --animate-rainbow: rainbow 3s linear infinite;
+  --animate-glow: glow 10s ease infinite;
+
+  @keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes glow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
+
+:root {
+  --gradient-color: #7B5CF0;
+  --sparkles-color: #7B5CF0;
+}
+
+.dark {
+  --gradient-color: #7B5CF0;
+  --sparkles-color: #ffffff;
 }
 
 @layer base {
@@ -133,4 +177,37 @@
   .glow-shadow-intense {
     box-shadow: 0 0 24px rgba(123, 92, 240, 0.5);
   }
+  .animate-scan {
+    animation: scan 3s linear infinite;
+  }
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(500%); }
+  }
+}
+
+/* Custom Scrollbar for Sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(123, 92, 240, 0.4);
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-gutter: stable;
 }

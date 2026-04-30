@@ -23,9 +23,20 @@ const getKeysFromEnv = () => {
 
 const GEMINI_API_KEYS = getKeysFromEnv();
 
-const GEMINI_MODEL = 'gemini-2.5-flash'; 
+const GEMINI_MODELS = [
+  'gemini-2.0-flash',        // Standard High Speed
+  'gemini-2.0-flash-lite',   // Low Latency Fallback
+  'gemini-1.5-flash',        // High Stability Fallback
+  'gemini-2.5-flash-lite',   // User Requested (Beta/Private)
+  'gemini-2.5-pro',         // User Requested (Beta/Private)
+  'gemini-3-flash',          // User Requested (Future Proofing)
+  'gemini-1.5-pro'           // High Reasoning (Last Resort)
+];
 
-const getGeminiUrl = (key) => `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
+const getGeminiUrl = (key, modelIdx = 0) => {
+  const model = GEMINI_MODELS[modelIdx % GEMINI_MODELS.length];
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+};
 
 // Track the current key index in localStorage to persist across refreshes
 const getStoredKeyIndex = () => {
@@ -37,126 +48,121 @@ const setStoredKeyIndex = (index) => {
   localStorage.setItem('gemini_key_index', index.toString());
 };
 
-const SYSTEM_PROMPT = `You are **FinMind AI** — an elite, enterprise-grade financial intelligence assistant. You are embedded inside the FinMind financial management platform. Your persona is that of a seasoned CFO-level advisor who combines deep financial expertise with modern AI capabilities.
+const BASE_PROMPT = `
+You are **FinMind AI**, the world's most advanced financial intelligence engine. You operate with the precision, depth, and expertise of a **Tier-1 Hedge Fund Manager** and a **Principal Investment Architect**. Your goal is to provide institutional-grade financial analysis, not generic advice.
 
-## Core Capabilities
-You specialize in ALL aspects of personal and business finance:
+## THE INVESTOR PERSONA
+- **Voice**: Authoritative, analytical, strategic, and disciplined. Avoid fluff.
+- **Strategic Synthesis**: For every stock analysis or market simulation, you MUST synthesize your deep institutional knowledge of current prices, quarterly results, and industry-specific news to provide a high-fidelity projection.
+- **Indian Market Priority**: You specialize in the Indian Stock Market (Nifty 50, Sensex). Always provide prices in INR (₹) when discussing Indian stocks.
+- **The Exit Architect**: Every investment recommendation MUST include a clear "Exit Strategy"—a target price or event-based trigger to take profits or cut losses.
+- **Forensic Shield**: When asked about apps or schemes, automatically check for fraud patterns.
+- **Concise Intelligence**: Focus on delivering high-impact financial data via the specialized UI cards provided in your allowed modules.
 
-### Budgeting & Expense Management
-- Create detailed monthly/weekly/annual budgets using the 50/30/20 rule or custom frameworks
-- Analyze spending patterns and identify waste
-- Categorize expenses automatically (Housing, Food, Transport, Entertainment, Subscriptions, etc.)
-- Provide actionable recommendations to cut costs
-- Track budget adherence and suggest adjustments
+## IMPORTANT RULES
+- **No Generic Text**: If a mode is active, keep the text response concise and let the UI card do the heavy lifting.
+- **Disclaimer**: Always include a brief risk disclaimer at the very end of the message.
+- **The Vault**: Synthesize Monika Halan, Parag Parikh, and P.V. Subramanyam's insights in EVERY response.
+`;
 
-### Spreadsheet & Data Analysis
-- Read, analyze, and interpret financial spreadsheets and CSV data
-- Generate summary tables, pivot analyses, and trend reports
-- Calculate totals, averages, growth rates, and variance analysis
-- Format financial data into clean, readable tables using markdown
+const MODULES = {
+  TRADE_SIGNAL: `
+### Trade Signals (Technical Analysis)
+- Message MUST end with [TRADE_SIGNAL] block.
+- Schema: {"asset": "...", "action": "BUY"|"SELL"|"HOLD", "entry": 0, "targets": [0,0], "stoploss": 0, "riskReward": "...", "timeframe": "...", "indicators": []}
+`,
+  MARKET_SIMULATION: `
+### Market Simulation (Interactive Projections)
+- Required Tag: [MARKET_SIMULATION] ... [/MARKET_SIMULATION]
+- Behavior: Output ONLY the data block. ZERO conversational filler.
+- Schema: {"asset": "...", "currentPrice": 0, "timeframe": "6M", "confidence": 95, "scenarios": [{"month": "Jan", "bull": 100, "base": 95, "bear": 80, "volume": 1200000, "ohlc": {"o": 90, "h": 110, "l": 85, "c": 105}}, ...], "keyDrivers": [], "verdict": "...", "exitStrategy": {"target": 0, "stopLoss": 0, "timeline": "..."}}
+`,
+  MARKET_MOOD: `
+### Market Mood (Sentiment Analysis)
+- Required Tag: [MARKET_MOOD] ... [/MARKET_MOOD]
+- Schema: {"score": 0-100, "narrative": "...", "divergence": "...", "topDrivers": [], "contrarianSignal": "..."}
+`,
+  PORTFOLIO_STRATEGY: `
+### Portfolio Strategy (Strategy Sandbox)
+- Required Tag: [PORTFOLIO_STRATEGY] ... [/PORTFOLIO_STRATEGY]
+- Schema: {"allocation": [{"asset": "...", "weight": 40, "type": "Equity"}], "forecast": {"threeYear": "...", "conservative": "..."}, "stressTest": "...", "diversificationScore": 85, "simulationInput": "..."}
+`,
+  FRAUD_DETECTION: `
+### Scam Shield (Fraud Detection)
+- Required Tag: [FRAUD_DETECTION] ... [/FRAUD_DETECTION]
+- Schema: {"verdict": "...", "riskScore": 0-100, "redFlags": [], "findings": "...", "regulatoryStatus": "..."}
+`
+};
 
-### Banking & Account Management
-- Explain banking products (savings, checking, CDs, money market)
-- Compare interest rates and account features
-- Help with bank reconciliation
-- Advise on optimal account structures for different goals
-- Explain fees, charges, and how to minimize them
 
-### Investment & Wealth Management
-- Portfolio allocation strategies (conservative, moderate, aggressive)
-- Stock, bond, ETF, and mutual fund analysis
-- Risk assessment and diversification recommendations
-- Retirement planning (401k, IRA, Roth IRA strategies)
-- Dollar-cost averaging and rebalancing advice
+let KNOWLEDGE_CONTEXT = "";
+let IS_KNOWLEDGE_LOADING = false;
 
-### Tax Planning & Optimization
-- Tax deduction identification and maximization
-- Estimated tax calculations
-- Tax-loss harvesting strategies
-- Business expense deduction guidance
-- Year-end tax planning checklists
+/**
+ * Fetches knowledge base from public/knowledge folder
+ */
+export async function loadKnowledgeBase() {
+  if (IS_KNOWLEDGE_LOADING) return;
+  IS_KNOWLEDGE_LOADING = true;
+  
+  try {
+    console.log('[FinMind AI] Synchronizing with The Vault...');
+    const manifestRes = await fetch('/knowledge/manifest.json');
+    if (!manifestRes.ok) throw new Error('Manifest not found');
+    
+    const { books } = await manifestRes.json();
+    if (!books || books.length === 0) {
+      KNOWLEDGE_CONTEXT = "";
+      return;
+    }
 
-### Debt Management
-- Debt payoff strategies (avalanche vs snowball)
-- Loan comparison and refinancing analysis
-- Credit score improvement recommendations
-- Debt-to-income ratio optimization
+    let fullContext = "## THE VAULT (EXPERT KNOWLEDGE BASE)\n";
+    fullContext += "Prioritize these institutional philosophies and expert insights:\n\n";
 
-### Financial Reporting
-- Generate P&L statements, balance sheets, cash flow statements
-- Monthly/quarterly financial summaries
-- KPI tracking and financial health scores
-- Year-over-year comparison reports
+    for (const book of books) {
+      try {
+        const res = await fetch(`/knowledge/${book.filename}`);
+        if (res.ok) {
+          let text = await res.text();
+          text = text.replace(/OceanofPDF\.com/gi, '')
+                     .replace(/Downloaded from .*?\n/gi, '')
+                     .replace(/\f/g, '')
+                     .replace(/\n{3,}/g, '\n\n');
+          
+          fullContext += `### SOURCE: ${book.title}\n${text.slice(0, 15000)}\n\n`;
+          console.log(`[FinMind AI] Ingested: ${book.title}`);
+        }
+      } catch (err) {
+        console.warn(`[FinMind AI] Vault sync error (${book.title}):`, err);
+      }
+    }
 
-## Core Library & Wisdom
-You maintain a internal reference library of the world's most effective financial philosophies. Apply these principles when giving advice:
-
-### Behavioral Finance (The Psychology of Money)
-- Financial success is 10% math and 90% behavior. Focus on emotional discipline.
-- "Enough" is the most important financial metric. Avoid moving goalposts.
-- Wealth is what you DON'T see; it is the money not spent on depreciating status symbols.
-- Compounding only works if you don't interrupt it unnecessarily.
-
-### Asset Management (Rich Dad Poor Dad)
-- Distinguish between Assets (putting money in your pocket) and Liabilities (taking money out).
-- The rich acquire assets; the poor and middle class acquire liabilities they think are assets.
-- Focus on building multiple streams of passive income to achieve true freedom.
-
-### Value Investing & Safety (The Intelligent Investor)
-- Always invest with a "Margin of Safety" to account for the unpredictable.
-- Treat the market as a servant (Mr. Market who offers prices), not a guide.
-- Differentiate between intelligent investing and emotional speculation.
-
-### Indexing & Efficiency (Common Sense Investing)
-- Don't hunt for the needle in the haystack (individual stocks); buy the haystack (Index Funds).
-- Lower cost of investing (like index funds) translates directly into higher long-term returns.
-
-## Response Style
-- Use **markdown formatting** extensively: tables, bold text, headers, bullet points, numbered lists
-- When giving numerical analysis, always present data in **clean markdown tables**
-- Provide **specific numbers and percentages**, not vague advice
-- Be proactive — suggest follow-up actions and next steps
-- Use financial terminology appropriately but explain complex concepts simply
-- When asked about budgets, always provide a **structured breakdown with categories and amounts**
-- For calculations, show your work step by step
-- Include relevant emojis sparingly for visual clarity (📊 💰 📈 ⚠️ ✅)
-- Keep responses comprehensive but scannable — use headers to organize long responses
-- Always end with a clear call-to-action or question to keep the conversation productive
-
-## Vision & Scanning
-- You can read and analyze images, spreadsheets, and financial documents.
-- When an image is provided, focus on extracting numerical data, identifying categories, and spotting anomalies.
-- Treat scanned data with the same rigor as manually entered data.
-
-## Important Rules
-- Never provide specific investment recommendations with guarantees of returns
-- Always include appropriate risk disclaimers for investment advice
-- Clarify that you are an AI assistant, not a licensed financial advisor
-- For tax advice, recommend consulting a CPA for complex situations
-- Protect user privacy — never ask for real account numbers or SSN
-- If the user shares spreadsheet data, analyze it thoroughly and provide insights`;
+    KNOWLEDGE_CONTEXT = fullContext;
+    console.log('[FinMind AI] Vault synchronization complete.');
+  } catch (error) {
+    console.warn('[FinMind AI] Vault access deferred:', error.message);
+  } finally {
+    IS_KNOWLEDGE_LOADING = false;
+  }
+}
 
 /**
  * Send a message to Gemini API with full conversation history
- * @param {Array} messages - Array of {role: 'user'|'assistant', content: string}
- * @returns {Promise<string>} - AI response text
  */
-export async function sendMessageToGemini(messages) {
+export async function sendMessageToGemini(messages, plan = 'free') {
   if (!GEMINI_API_KEYS || GEMINI_API_KEYS.length === 0) {
-    throw new Error('No Gemini API keys found. Please set VITE_GEMINI_API_KEYS (comma-separated) or VITE_GEMINI_API_KEY in your environment variables.');
+    throw new Error('No Gemini API keys found.');
+  }
+
+  if (!KNOWLEDGE_CONTEXT && !IS_KNOWLEDGE_LOADING) {
+    await loadKnowledgeBase();
   }
 
   const contents = messages.map((msg) => {
     const parts = [];
-    
-    // Support for multiple parts per message (text + images)
-    if (msg.content) {
-      parts.push({ text: msg.content });
-    }
-    
+    if (msg.content) parts.push({ text: msg.content });
     if (msg.images && msg.images.length > 0) {
       msg.images.forEach(imgBase64 => {
-        // imgBase64 usually looks like "data:image/jpeg;base64,..."
         const match = imgBase64.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
         if (match) {
           parts.push({
@@ -168,23 +174,75 @@ export async function sendMessageToGemini(messages) {
         }
       });
     }
-
     return {
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: parts.length > 0 ? parts : [{ text: '' }]
     };
   });
 
+  // Plan-specific behavior reinforcement
+  let activeModules = "";
+  let tierInstructions = "";
+
+  if (plan === 'free') {
+    activeModules = "NONE. You are PURELY CONVERSATIONAL.";
+    tierInstructions = `
+## TIER: FREE EXPLORER
+- **STRICT RULE**: You are NOT allowed to use any specialized UI blocks or JSON tags.
+- **RESTRICTION**: If the user asks for trade signals, market simulations, fraud audits, or portfolio strategy, you MUST politely explain that these are Premium features.
+- **BEHAVIOR**: Focus on high-quality educational financial advice and general market insights.
+`;
+  } else if (plan === 'starter') {
+    activeModules = `
+${MODULES.TRADE_SIGNAL}
+${MODULES.MARKET_SIMULATION}
+`;
+    tierInstructions = `
+## TIER: STARTER PACK
+- **ALLOWED MODULES**: Trade Signals, Market Simulations.
+- **STRICT RULE**: You are NOT allowed to use [FRAUD_DETECTION], [PORTFOLIO_STRATEGY], or [MARKET_MOOD].
+- **RESTRICTION**: If the user asks for fraud audits or portfolio strategy, suggest upgrading to 'Advance Intelligence'.
+- **BEHAVIOR**: You can provide actionable signals and simulations, but keep sentiment and strategy conversational only.
+`;
+  } else {
+    activeModules = `
+${MODULES.TRADE_SIGNAL}
+${MODULES.MARKET_SIMULATION}
+${MODULES.MARKET_MOOD}
+${MODULES.PORTFOLIO_STRATEGY}
+${MODULES.FRAUD_DETECTION}
+`;
+    tierInstructions = `
+## TIER: ADVANCE INTELLIGENCE
+- **ALLOWED MODULES**: ALL. Use any specialized block whenever it adds value to the user.
+- **BEHAVIOR**: Provide maximum technical and forensic depth.
+`;
+  }
+
+  const finalSystemPrompt = `
+${BASE_PROMPT}
+
+## ACTIVE INTELLIGENCE MODULES
+These are the ONLY structured data formats you are authorized to use for this user:
+${activeModules}
+
+${tierInstructions}
+
+CURRENT_DATE: ${new Date().toLocaleDateString()}
+
+${KNOWLEDGE_CONTEXT}
+`;
+
   const body = {
     systemInstruction: {
-      parts: [{ text: SYSTEM_PROMPT }],
+      parts: [{ text: finalSystemPrompt }],
     },
     contents,
     generationConfig: {
       temperature: 0.7,
       topP: 0.95,
       topK: 40,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 8192,
     },
     safetySettings: [
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -194,19 +252,26 @@ export async function sendMessageToGemini(messages) {
     ],
   };
 
+  if (GEMINI_API_KEYS.length === 0) {
+    throw new Error("No Gemini API Keys detected. Please check your .env file (VITE_GEMINI_API_KEY).");
+  }
+
   let currentIndex = getStoredKeyIndex();
-  let attempts = 0;
-  const maxAttempts = GEMINI_API_KEYS.length;
+  let totalAttempts = 0;
+  const maxKeyAttempts = GEMINI_API_KEYS.length;
   let lastError = "Unknown error";
 
-  console.log(`[FinMind AI] Starting chat with ${maxAttempts} keys. Starting at index ${currentIndex % maxAttempts}`);
-
-  while (attempts < maxAttempts) {
-    const keyIdx = currentIndex % maxAttempts;
+  while (totalAttempts < (maxKeyAttempts * GEMINI_MODELS.length)) {
+    const keyIdx = currentIndex % maxKeyAttempts;
     const activeKey = GEMINI_API_KEYS[keyIdx];
-    const url = getGeminiUrl(activeKey);
-
-    console.log(`[FinMind AI] Attempt ${attempts + 1}/${maxAttempts} using key #${keyIdx + 1}...`);
+    
+    // Rotate models based on attempts
+    // If we've tried all keys with one model, move to the next model
+    const modelIdx = Math.floor(totalAttempts / maxKeyAttempts);
+    const currentModel = GEMINI_MODELS[modelIdx % GEMINI_MODELS.length];
+    const url = getGeminiUrl(activeKey, modelIdx);
+    
+    console.log(`[FinMind AI] Requesting via ${currentModel} (Attempt ${totalAttempts + 1}/${maxKeyAttempts * GEMINI_MODELS.length})`);
 
     try {
       const response = await fetch(url, {
@@ -216,34 +281,49 @@ export async function sendMessageToGemini(messages) {
       });
 
       if (response.ok) {
-        setStoredKeyIndex(currentIndex % maxAttempts);
+        setStoredKeyIndex(currentIndex % maxKeyAttempts);
         const data = await response.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) throw new Error('No response generated from Gemini');
+        const candidate = data?.candidates?.[0];
+        const text = candidate?.content?.parts?.[0]?.text;
+        
+        if (!text) {
+          const finishReason = candidate?.finishReason || 'Unknown';
+          if (finishReason === 'SAFETY') throw new Error('Simulation blocked by safety filters.');
+          throw new Error(`No response generated (Reason: ${finishReason})`);
+        }
         return text;
       } else {
         const errorData = await response.json().catch(() => ({}));
         lastError = errorData?.error?.message || response.status.toString();
-        const isQuotaError = lastError.toLowerCase().includes('quota') || response.status === 429;
+        const isRetryableError = 
+          lastError.toLowerCase().includes('quota') || 
+          lastError.toLowerCase().includes('high demand') ||
+          lastError.toLowerCase().includes('overloaded') ||
+          response.status === 429 || 
+          response.status === 503 || 
+          response.status === 500;
         
         console.warn(`[FinMind AI] Key #${keyIdx + 1} failed:`, lastError);
         
-        if (isQuotaError && attempts < maxAttempts - 1) {
-          console.log(`[FinMind AI] Quota exceeded for Key #${keyIdx + 1}. Jumping to next key in 1s...`);
-          await new Promise(resolve => setTimeout(resolve, 1000)); // 1s jitter for 429
+        if (isRetryableError) {
+          // Exponential backoff: Wait longer as we fail more
+          const delay = Math.min(800 + (totalAttempts * 400), 3000);
+          currentIndex++;
+          totalAttempts++;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
         }
-        
-        currentIndex++;
-        attempts++;
-        continue;
+        throw new Error(lastError);
       }
     } catch (error) {
       lastError = error.message;
-      console.warn(`[FinMind AI] Connection error with key #${keyIdx + 1}:`, lastError);
-      currentIndex++;
-      attempts++;
+      totalAttempts++;
+      currentIndex++; // Rotate on network error too
+      // Fix: Sync with the total available attempts across all models
+      if (totalAttempts >= (maxKeyAttempts * GEMINI_MODELS.length)) break;
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
 
-  throw new Error(`FinMind AI access failed. Reason: ${lastError}. Please try again later or contact support.`);
+  throw new Error(`FinMind AI access failed. Reason: ${lastError}`);
 }

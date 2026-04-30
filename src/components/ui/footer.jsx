@@ -17,8 +17,12 @@ const links = [
 
 export default function FooterSection() {
     return (
-        <footer className="py-16 md:py-24 border-t border-border/30 bg-surface/30">
-            <div className="mx-auto max-w-5xl px-6">
+        <footer className="py-20 md:py-28 bg-[#050507] relative overflow-hidden border-t border-white/5">
+            {/* Top Gradient Glow for seamless transition */}
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-20" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-48 bg-primary/[0.03] blur-[100px] pointer-events-none" />
+            
+            <div className="mx-auto max-w-5xl px-6 relative z-10">
                 <a
                     href="/"
                     aria-label="go home"

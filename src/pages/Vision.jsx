@@ -1,61 +1,96 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Target, ArrowRight, Sparkles, CircuitBoard } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
+import VisionSection from '../components/ui/vision-feature-section';
+import { motion } from 'framer-motion';
 
 const Vision = () => {
-  const fadeUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-  };
-
   return (
     <PageWrapper>
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-          <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-8">
-              <span className="animate-pulse">●</span> The Vision
-            </div>
-            <h1 className="font-display font-black text-6xl md:text-8xl mb-10 tracking-tighter leading-[0.9]">
-              Future of <br /><span className="text-primary">Capital.</span>
-            </h1>
-            <p className="text-2xl text-text-secondary mb-12 leading-relaxed">
-              We believe financial tracking shouldn't be a chore—it should be a masterpiece of design and intelligence. 
-            </p>
-            <div className="space-y-8">
-              <div className="p-8 rounded-[2rem] bg-surface/30 border border-border/50">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3">
-                  <CircuitBoard className="text-primary" /> Autonomous Finance
-                </h3>
-                <p className="text-text-secondary">Our goal is to create an ecosystem where capital manages itself, optimized by AI, and governed by precision rules set by you.</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <div className="relative">
-             <motion.div 
-               initial={{ opacity: 0, scale: 0.8 }}
-               whileInView={{ opacity: 1, scale: 1 }}
-               className="aspect-square rounded-full border border-primary/20 flex items-center justify-center p-10 relative overflow-hidden"
-             >
-                <div className="absolute inset-0 bg-primary/5 blur-[100px] animate-pulse" />
-                <div className="text-center z-10">
-                   <Target size={120} className="mx-auto text-primary mb-6" />
-                   <h2 className="text-4xl font-black mb-2">$1B</h2>
-                   <p className="text-text-secondary uppercase tracking-widest font-bold text-xs">AUM Managed by AI by 2030</p>
-                </div>
-             </motion.div>
+      <div className="bg-[#050507] min-h-screen text-white overflow-hidden">
+        {/* Header Section */}
+        <section className="pt-32 pb-16 px-6">
+          <div className="max-w-5xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h1 className="text-5xl md:text-7xl font-display font-black mb-6 tracking-tighter">
+                Our <span className="text-primary text-glow-md">Vision</span>
+              </h1>
+              <p className="text-zinc-500 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
+                Empowering every investor with institutional-grade intelligence to conquer global markets.
+              </p>
+            </motion.div>
           </div>
-        </div>
+        </section>
 
-        <div className="mt-40 text-center border-t border-border/30 pt-40 pb-20">
-            <h2 className="font-display font-bold text-5xl md:text-7xl mb-10 tracking-tight">"Capital is no longer just money. It is code."</h2>
-            <button className="px-10 py-5 rounded-2xl bg-white text-black font-bold text-lg hover:bg-primary hover:text-white transition-all duration-300 flex items-center gap-3 mx-auto">
-                Join the Vanguard <ArrowRight size={20} />
-            </button>
-        </div>
-      </section>
+        {/* The Core Vision Section */}
+        <VisionSection />
+
+        {/* Secondary Vision Context */}
+        <section className="py-32 border-t border-white/5">
+            <div className="max-w-5xl mx-auto px-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                    <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <h2 className="text-3xl font-bold mb-6">Transparency First</h2>
+                        <p className="text-zinc-400 leading-relaxed text-lg">
+                            We believe that AI in finance shouldn't be a black box. Our vision includes providing full explainability for every prediction and trade signal generated by our system.
+                        </p>
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, x: 30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                        className="bg-zinc-900/50 p-8 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-sm"
+                    >
+                        <div className="space-y-6">
+                            <div className="flex gap-4">
+                                <div className="size-12 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
+                                    <div className="size-6 bg-primary rounded-full shadow-lg shadow-primary/50" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-lg">Ethical AI</h4>
+                                    <p className="text-zinc-500 text-sm">Building models that respect market integrity and fairness.</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="size-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center shrink-0">
+                                    <div className="size-6 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/50" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-lg">Universal Access</h4>
+                                    <p className="text-zinc-500 text-sm">Bringing billionaire-level tools to the everyday investor.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+        </section>
+
+        {/* Final Vision Statement */}
+        <section className="py-40 text-center relative">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="max-w-3xl mx-auto px-6"
+            >
+                <h3 className="text-4xl font-bold mb-8">Ready to see the future?</h3>
+                <button className="px-12 py-5 bg-primary text-white font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(123,92,240,0.5)] uppercase tracking-widest text-sm">
+                    Join the Vision
+                </button>
+            </motion.div>
+        </section>
+      </div>
     </PageWrapper>
   );
 };

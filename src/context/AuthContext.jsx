@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
         console.log("No user record found in Firestore. Creating initial data for:", user.email);
         const initialData = {
           credits: 20,
-          isPremium: false,
+          plan: 'free',
           lastResetDate: today,
           email: user.email || '',
           createdAt: new Date().toISOString(),
@@ -62,9 +62,16 @@ export const AuthProvider = ({ children }) => {
         if (data.lastResetDate !== today) {
           console.log("New day detected. Resetting/updating user metadata.");
           const updates = { lastResetDate: today };
-          if (data.isPremium) {
+          
+          // Daily refill based on plan
+          if (data.plan === 'advance') {
+            updates.credits = 100;
+          } else if (data.plan === 'starter') {
             updates.credits = 50;
+          } else {
+            updates.credits = 20;
           }
+          
           await updateDoc(userRef, updates);
         }
       }
@@ -123,7 +130,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const buyPremium = async () => {
+  const upgradePlan = async (planName) => {
     if (!user) return false;
     const userRef = doc(db, 'users', user.uid);
     try {
@@ -131,15 +138,20 @@ export const AuthProvider = ({ children }) => {
       const nextBillDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
       const sinceDate = now.toISOString();
 
+      let credits = 20;
+      if (planName === 'advance') credits = 100;
+      else if (planName === 'starter') credits = 50;
+
       await updateDoc(userRef, {
-        isPremium: true,
-        credits: 50, // Give 50 credits immediately on purchase
+        plan: planName,
+        isPremium: planName !== 'free', // Keep for backward compatibility if needed
+        credits: credits, 
         premiumUntil: nextBillDate,
         premiumSince: sinceDate
       });
       return true;
     } catch (error) {
-      console.error("Error upgrading to premium:", error);
+      console.error("Error upgrading plan:", error);
       return false;
     }
   };
@@ -156,7 +168,8 @@ export const AuthProvider = ({ children }) => {
     signupWithEmail,
     logout,
     deductCredits,
-    buyPremium
+    upgradePlan,
+    buyPremium: () => upgradePlan('starter') // Default for legacy calls
   };
 
   return (

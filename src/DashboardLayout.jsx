@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Settings, Plus, MessageSquare, MoreHorizontal, Search, Trash2, LogOut, Coins, Crown, User, LayoutDashboard, StickyNote } from 'lucide-react';
+import { Settings, Plus, MessageSquare, MoreHorizontal, Search, Trash2, LogOut, Coins, Crown, User, LayoutDashboard, PenTool, X } from 'lucide-react';
 import { AnimatedAIChat } from './components/ui/animated-ai-chat';
 import { sendMessageToGemini } from './lib/gemini';
-import { Whiteboard } from './components/Whiteboard';
 import { useAuth } from './context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { cn } from './lib/utils';
 
 // Helpers for localStorage persistence (Scoped by user UID)
 const getStorageKey = (uid) => `finmind_chats_${uid}`;
@@ -69,25 +72,25 @@ const ChatHistoryItem = ({ chat, isActive, onClick, onDelete }) => {
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group relative
+      className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group relative overflow-hidden
         ${isActive
-          ? 'bg-primary/10 text-text-primary'
-          : 'text-text-secondary hover:bg-elevated/60 hover:text-text-primary'
+          ? 'bg-primary/15 text-white shadow-[inset_0_0_20px_rgba(123,92,240,0.1)] border border-primary/30'
+          : 'text-text-secondary hover:bg-white/5 hover:text-white border border-transparent'
         }`}
     >
-      <div className="flex items-center gap-2.5">
-        <MessageSquare size={14} className={`shrink-0 ${isActive ? 'text-primary' : 'text-text-secondary/50 group-hover:text-text-secondary'}`} />
+      <div className="flex items-center gap-3 relative z-10">
+        <MessageSquare size={14} className={`shrink-0 transition-colors ${isActive ? 'text-primary' : 'text-text-secondary/50 group-hover:text-primary/70'}`} />
         <span className="truncate font-medium">{chat.title}</span>
       </div>
 
       {/* Hover delete */}
       {hovered && (
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5"
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20"
           onClick={(e) => e.stopPropagation()}
         >
           <span
             onClick={(e) => { e.stopPropagation(); onDelete(chat.id); }}
-            className="p-1 rounded hover:bg-red-500/20 text-text-secondary/60 hover:text-red-400 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-red-500/20 text-text-secondary/60 hover:text-red-400 transition-all cursor-pointer backdrop-blur-md"
             title="Delete chat"
           >
             <Trash2 size={13} />
@@ -95,9 +98,9 @@ const ChatHistoryItem = ({ chat, isActive, onClick, onDelete }) => {
         </div>
       )}
 
-      {/* Active indicator */}
+      {/* Active glow effect */}
       {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none" />
       )}
     </button>
   );
@@ -109,7 +112,6 @@ const DashboardLayout = () => {
   const [chats, setChats] = useState(() => loadChats(user?.uid));
   const [activeChatId, setActiveChatId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [view, setView] = useState('chat'); // 'chat' or 'whiteboard'
 
   // Persist chats to localStorage whenever they change
   useEffect(() => {
@@ -159,7 +161,7 @@ const DashboardLayout = () => {
         images: m.images || []
       }));
 
-      const aiResponse = await sendMessageToGemini(apiMessages);
+      const aiResponse = await sendMessageToGemini(apiMessages, userData?.plan || 'free');
       appendAIMessage(chatId, aiResponse);
       
       // Deduct credits only after success
@@ -243,177 +245,129 @@ const DashboardLayout = () => {
         .filter((g) => g.chats.length > 0)
     : grouped;
 
+
+
+
+
   return (
-    <div className="min-h-screen bg-background text-text-primary flex">
-      <aside className="w-[260px] fixed h-full border-r border-border bg-surface z-10 flex flex-col">
-        <div className="font-display font-bold text-2xl tracking-tight flex items-center gap-2.5 px-6 pt-6 pb-4 cursor-pointer" onClick={() => navigate('/')}>
-          <img src="/logo.png" alt="FinMind Logo" className="w-8 h-8 object-contain rounded-lg" />
-          <span>FinMind<span className="text-primary text-3xl">.</span></span>
+    <div className="min-h-screen bg-[#0A0A0F] text-text-primary flex selection:bg-primary/30 overflow-hidden">
+      <aside className="w-[280px] fixed h-screen border-r border-white/5 bg-[#0D0D12]/80 backdrop-blur-2xl z-20 flex flex-col shadow-[20px_0_40px_rgba(0,0,0,0.3)] overflow-hidden">
+        {/* ... existing sidebar content ... */}
+        <div className="font-display font-bold text-2xl tracking-tighter flex items-center gap-2 px-7 pt-8 pb-6 cursor-pointer group shrink-0" onClick={() => navigate('/')}>
+          <span className="relative z-10 text-white tracking-tight">FinMind<span className="text-primary">AI</span></span>
         </div>
 
-        {/* Credit Display */}
-        <div className="px-3 pb-3">
-          <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Coins size={16} />
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar min-h-0 flex flex-col">
+          {/* Search Bar */}
+          <div className="px-4 pb-4">
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-text-secondary/50 group-focus-within:text-primary transition-colors">
+                <Search size={14} />
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Credits</span>
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white">
-                        {userDataLoading ? '...' : (userData ? userData.credits : '—')}
-                    </span>
-                    {!userDataLoading && !userData && (
-                        <button 
-                            onClick={() => refreshUserData()}
-                            className="bg-primary/20 hover:bg-primary/40 text-[9px] text-primary px-1.5 py-0.5 rounded transition-colors"
-                            title={syncError || "Click to retry sync"}
-                        >
-                            Retry
-                        </button>
-                    )}
-                </div>
-              </div>
-            </div>
-            <div className={`text-[10px] font-bold px-2 py-1 rounded-md ${userData?.isPremium ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'}`}>
-              {userData?.isPremium ? 'PREMIUM' : 'FREE'}
-            </div>
-          </div>
-        </div>
-
-        {/* Buy Premium Button */}
-        {!userDataLoading && !userData?.isPremium && (
-          <div className="px-3 pb-3">
-            <button
-              onClick={() => navigate('/premium')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-violet-600 hover:from-violet-600 hover:to-primary text-white border border-primary/30 rounded-xl text-xs font-bold transition-all shadow-lg shadow-primary/20 group"
-            >
-              <Crown size={14} className="group-hover:scale-125 transition-transform" />
-              Upgrade to Premium
-            </button>
-          </div>
-        )}
-
-        <div className="px-3 pb-3">
-          <button
-            onClick={handleNewChat}
-            className={`w-full flex items-center gap-2.5 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 border
-              ${activeChatId === null
-                ? 'bg-primary text-white border-primary shadow-[0_0_20px_rgba(123,92,240,0.25)]'
-                : 'bg-transparent text-text-primary border-border hover:border-primary/40 hover:bg-primary/5'
-              }`}
-          >
-            <Plus size={18} />
-            <span>New Chat</span>
-          </button>
-        </div>
-
-        <div className="px-3 pb-3 space-y-1">
-          <button
-            onClick={() => setView('chat')}
-            className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
-              ${view === 'chat'
-                ? 'bg-primary/10 text-primary border border-primary/20'
-                : 'text-text-secondary hover:bg-elevated/60 hover:text-text-primary border border-transparent'
-              }`}
-          >
-            <MessageSquare size={18} />
-            <span>AI Chat</span>
-          </button>
-          <button
-            onClick={() => setView('whiteboard')}
-            className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
-              ${view === 'whiteboard'
-                ? 'bg-primary/10 text-primary border border-primary/20'
-                : 'text-text-secondary hover:bg-elevated/60 hover:text-text-primary border border-transparent'
-              }`}
-          >
-            <StickyNote size={18} />
-            <span>Whiteboard</span>
-          </button>
-        </div>
-
-        {chats.length > 0 && (
-          <div className="px-3 pb-2">
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary/50" />
               <input
                 type="text"
-                placeholder="Search chats..."
+                placeholder="Search sessions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-elevated/50 border border-border rounded-lg pl-8 pr-3 py-2 text-xs text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-primary/40 transition-colors"
+                className="w-full bg-white/[0.03] border border-white/5 focus:border-primary/30 focus:bg-white/[0.05] rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-text-secondary/30 outline-none transition-all"
               />
             </div>
           </div>
-        )}
 
-        <div className="flex-1 overflow-y-auto px-3 pb-3 scrollbar-thin">
-          {filteredGroups.length > 0 ? (
-            filteredGroups.map((group) => (
-              <div key={group.label} className="mb-4">
-                <div className="px-3 py-2 text-[11px] font-semibold text-text-secondary/50 uppercase tracking-wider">
-                  {group.label}
+          {/* Credit Display */}
+          <div className="px-4 pb-4">
+            <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center justify-between shadow-inner group hover:border-primary/20 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                  <Coins size={18} />
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  {group.chats.map((chat) => (
-                    <ChatHistoryItem
-                      key={chat.id}
-                      chat={chat}
-                      isActive={activeChatId === chat.id}
-                      onClick={() => setActiveChatId(chat.id)}
-                      onDelete={handleDeleteChat}
-                    />
-                  ))}
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-text-secondary uppercase font-black tracking-[0.1em]">Treasury</span>
+                  <div className="flex items-center gap-2">
+                      <span className="text-base font-bold text-white tracking-tight">
+                          {userDataLoading ? '...' : (userData ? userData.credits : '—')}
+                      </span>
+                  </div>
                 </div>
               </div>
-            ))
-          ) : chats.length === 0 ? (
-            <div className="text-center text-text-secondary/30 text-xs py-10 px-4">
-              No conversations yet. Start a new chat to begin.
+              <div className={`text-[9px] font-black tracking-widest px-2.5 py-1 rounded-lg border ${userData?.isPremium ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                {userData?.plan ?? 'FREE'}
+              </div>
             </div>
-          ) : (
-            <div className="text-center text-text-secondary/40 text-xs py-8">
-              No chats matching "{searchQuery}"
+          </div>
+
+          {/* Upgrade Button */}
+          {!userDataLoading && userData?.plan !== 'advance' && (
+            <div className="px-4 pb-4">
+              <button
+                onClick={() => navigate('/pricing')}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#4F46E5] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] text-white rounded-2xl text-[13px] font-bold transition-all active:scale-[0.98] group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Crown size={15} className="group-hover:rotate-12 transition-transform" />
+                <span>{userData?.plan === 'starter' ? 'Upgrade to Advance' : 'Unlock Pro Features'}</span>
+              </button>
             </div>
           )}
+
+          <div className="px-4 pb-4">
+            <button
+              onClick={handleNewChat}
+              className={`w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 border active:scale-95
+                ${activeChatId === null
+                  ? 'bg-white text-black border-white shadow-[0_0_25px_rgba(255,255,255,0.15)]'
+                  : 'bg-white/5 text-white/70 border-white/5 hover:border-white/20 hover:bg-white/[0.08] hover:text-white'
+                }`}
+            >
+              <Plus size={18} className={activeChatId === null ? "text-black" : "text-primary"} />
+              <span>New Session</span>
+            </button>
+          </div>
+
+          <div className="px-4 pb-6">
+            {filteredGroups.length > 0 ? (
+              filteredGroups.map((group) => (
+                <div key={group.label} className="mb-6">
+                  <div className="px-3 py-2 text-[10px] font-black text-text-secondary/30 uppercase tracking-[0.15em]">
+                    {group.label}
+                  </div>
+                  <div className="flex flex-col gap-1 mt-1">
+                    {group.chats.map((chat) => (
+                      <ChatHistoryItem
+                        key={chat.id}
+                        chat={chat}
+                        isActive={activeChatId === chat.id}
+                        onClick={() => setActiveChatId(chat.id)}
+                        onDelete={handleDeleteChat}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : null}
+          </div>
         </div>
 
-        <div className="p-4 border-t border-border mt-auto">
-          {chats.length > 0 && (
-            <button 
-              onClick={() => {
-                if (window.confirm('Clear all chat history? This cannot be undone.')) {
-                  setChats([]);
-                  setActiveChatId(null);
-                }
-              }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-text-secondary/60 hover:text-danger hover:bg-danger/5 rounded-lg transition-all mb-4 group"
-            >
-              <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
-              <span>Clear Conversations</span>
-            </button>
-          )}
-
-          <div className="flex items-center gap-3 group px-1">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center font-bold text-sm shadow-[0_0_15px_rgba(123,92,240,0.3)] shrink-0">
+        <div className="p-4 bg-[#0A0A0F]/50 border-t border-white/5 backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-3 p-2 rounded-2xl bg-white/[0.02] border border-white/5 group hover:border-white/10 transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow-lg shadow-primary/20 shrink-0 group-hover:scale-105 transition-transform">
                {user?.email?.[0].toUpperCase() ?? 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-sm truncate text-white">{user?.email ?? 'User'}</div>
-              <div className="flex items-center gap-3 mt-0.5">
+              <div className="font-bold text-sm truncate text-white tracking-tight">{user?.email?.split('@')[0] ?? 'Explorer'}</div>
+              <div className="flex items-center gap-3 mt-1">
                 <button 
                   onClick={() => navigate('/account')}
-                  className="text-text-secondary text-xs flex items-center gap-1 hover:text-primary transition-colors"
+                  className="text-text-secondary/60 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:text-white transition-colors"
                 >
-                  <User size={12}/> Account
+                  Profile
                 </button>
+                <div className="w-1 h-1 rounded-full bg-white/10" />
                 <button 
                   onClick={handleLogout}
-                  className="text-text-secondary text-xs flex items-center gap-1 hover:text-red-400 transition-colors"
+                  className="text-text-secondary/60 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:text-red-400 transition-colors"
                 >
-                  <LogOut size={12}/> Sign Out
+                  Logout
                 </button>
               </div>
             </div>
@@ -421,17 +375,20 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
-      <main className="ml-[260px] flex-1 flex flex-col min-h-screen">
-        {view === 'chat' ? (
-          <AnimatedAIChat
-            messages={activeMessages}
-            onSendMessage={handleSendMessage}
-            isNewChat={activeChatId === null}
-            credits={userDataLoading ? 20 : (userData?.credits ?? 20)}
-          />
-        ) : (
-          <Whiteboard />
-        )}
+      <main className="ml-[280px] flex-1 flex flex-row h-screen relative overflow-hidden">
+        {/* Background ambient glow */}
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col flex-1 transition-all duration-500 ease-in-out">
+            <AnimatedAIChat
+                messages={activeMessages}
+                onSendMessage={handleSendMessage}
+                isNewChat={activeChatId === null}
+                credits={userDataLoading ? 20 : (userData?.credits ?? 20)}
+                plan={userData?.plan ?? 'free'}
+            />
+        </div>
       </main>
     </div>
   );

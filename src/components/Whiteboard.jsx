@@ -8,11 +8,11 @@ import { sendMessageToGemini } from '../lib/gemini';
 import { collection, query, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 const NOTE_COLORS = [
-  'bg-violet-500/20 border-violet-500/30 text-violet-200',
-  'bg-emerald-500/20 border-emerald-500/30 text-emerald-200',
-  'bg-amber-500/20 border-amber-500/30 text-amber-200',
-  'bg-blue-500/20 border-blue-500/30 text-blue-200',
-  'bg-rose-500/20 border-rose-500/30 text-rose-200',
+  'bg-violet-600/10 border-violet-500/20 text-violet-200 shadow-[0_8px_32px_rgba(124,58,237,0.05)]',
+  'bg-emerald-600/10 border-emerald-500/20 text-emerald-200 shadow-[0_8px_32px_rgba(16,185,129,0.05)]',
+  'bg-amber-600/10 border-amber-500/20 text-amber-200 shadow-[0_8px_32px_rgba(245,158,11,0.05)]',
+  'bg-blue-600/10 border-blue-500/20 text-blue-200 shadow-[0_8px_32px_rgba(59,130,246,0.05)]',
+  'bg-rose-600/10 border-rose-500/20 text-rose-200 shadow-[0_8px_32px_rgba(244,63,94,0.05)]',
 ];
 
 const CATEGORY_ICONS = {
@@ -35,26 +35,27 @@ const GoalNote = ({ note, onUpdate, onDelete }) => {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className={cn(
-        "relative p-5 rounded-3xl border backdrop-blur-md group h-full flex flex-col justify-between min-h-[160px]",
+        "relative p-6 rounded-[2rem] border backdrop-blur-xl group h-full flex flex-col justify-between min-h-[180px] transition-all",
         note.color || NOTE_COLORS[0]
       )}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-white/5 text-[10px] uppercase font-bold tracking-wider">
-          {CATEGORY_ICONS[note.category] || <FileText className="w-4 h-4" />}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 text-[9px] uppercase font-black tracking-widest text-white/70 border border-white/5">
+          {CATEGORY_ICONS[note.category] || <FileText className="w-3.5 h-3.5" />}
           <span>{note.category || 'Note'}</span>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
           {!isEditing && (
-            <button onClick={() => setIsEditing(true)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+            <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-white/10 rounded-xl transition-colors text-white/50 hover:text-white">
               <Edit2 size={12} />
             </button>
           )}
-          <button onClick={() => onDelete(note.id)} className="p-1.5 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors">
+          <button onClick={() => onDelete(note.id)} className="p-2 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors">
             <Trash2 size={12} />
           </button>
         </div>
@@ -65,31 +66,34 @@ const GoalNote = ({ note, onUpdate, onDelete }) => {
           autoFocus
           value={editedText}
           onChange={(e) => setEditedText(e.target.value)}
-          className="bg-transparent border-none focus:ring-0 text-sm w-full resize-none h-24 p-0 leading-relaxed placeholder:text-white/20"
+          className="bg-transparent border-none focus:ring-0 text-sm w-full resize-none h-24 p-0 leading-relaxed placeholder:text-white/20 text-white font-medium"
           placeholder="What's your financial goal?"
         />
       ) : (
-        <div className="text-sm font-medium leading-relaxed overflow-hidden line-clamp-4">
+        <div className="text-sm font-semibold leading-relaxed overflow-hidden line-clamp-4 text-white/90">
           {note.text}
         </div>
       )}
 
       {isEditing && (
         <div className="flex justify-end gap-2 mt-2">
-          <button onClick={() => setIsEditing(false)} className="p-1.5 hover:bg-white/10 rounded-lg text-white/40">
+          <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-white/10 rounded-xl text-white/40">
             <X size={14} />
           </button>
-          <button onClick={handleSave} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+          <button onClick={handleSave} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white">
             <Check size={14} />
           </button>
         </div>
       )}
       
       {!isEditing && (
-        <div className="text-[10px] text-white/30 mt-4 font-mono">
-          {note.createdAt && typeof note.createdAt.toDate === 'function' 
-            ? note.createdAt.toDate().toLocaleDateString() 
-            : 'Just now'}
+        <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/5">
+          <div className="text-[9px] font-bold text-white/20 uppercase tracking-tighter uppercase">
+            {note.createdAt && typeof note.createdAt.toDate === 'function' 
+              ? note.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
+              : 'Just now'}
+          </div>
+          <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
         </div>
       )}
     </motion.div>
@@ -302,37 +306,40 @@ export const Whiteboard = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background/50 p-6 md:p-10 relative overflow-hidden">
-      {/* Background Decorative elements */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10 animate-pulse" />
-      
-      <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                <StickyNoteIcon size={24} />
-              </div>
-              <h1 className="text-4xl font-display font-black tracking-tight text-white">The Fridge</h1>
+    <div className="flex-1 flex flex-col bg-transparent p-6 md:p-12 relative overflow-hidden selection:bg-primary/30">
+      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em]">
+                Command Center
             </div>
-            <p className="text-text-secondary">Your AI-monitored financial mission control and goal whiteboard.</p>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-primary/20 border border-white/10">
+                <StickyNoteIcon size={28} />
+              </div>
+              <h1 className="text-5xl font-display font-black tracking-tight text-white">The Fridge</h1>
+            </div>
+            <p className="text-text-secondary text-lg max-w-xl font-medium leading-relaxed">
+              Your AI-monitored financial mission control. Pin your goals, budgets, and strategic notes.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setIsAdding(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold transition-all shadow-[0_0_20px_rgba(123,92,240,0.3)] hover:scale-[1.02]"
+              className="flex items-center gap-2.5 px-7 py-4 bg-white text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] rounded-2xl font-bold transition-all active:scale-95"
             >
-              <Plus size={18} />
-              <span>New Sticky Note</span>
+              <Plus size={20} />
+              <span>New Sticky</span>
             </button>
             <button 
                 onClick={handleAISync}
                 disabled={isSyncing}
-                className="flex items-center gap-2 px-6 py-3 bg-surface border border-primary/20 hover:border-primary/40 text-text-primary rounded-2xl font-bold transition-all group disabled:opacity-50"
+                className="flex items-center gap-2.5 px-7 py-4 bg-[#0D0D12] border border-white/5 hover:border-primary/40 text-white rounded-2xl font-bold transition-all group disabled:opacity-50 relative overflow-hidden"
             >
-              <Sparkles size={18} className={cn("text-primary", isSyncing && "animate-spin")} />
-              <span>{isSyncing ? 'Syncing...' : 'AI Sync'}</span>
+              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Sparkles size={18} className={cn("text-primary transition-transform group-hover:rotate-12", isSyncing && "animate-spin")} />
+              <span>{isSyncing ? 'Analyzing...' : 'AI Sync'}</span>
             </button>
           </div>
         </div>
