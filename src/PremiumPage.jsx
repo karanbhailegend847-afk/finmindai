@@ -11,7 +11,7 @@ const PremiumPage = () => {
 
   // Configuration - Plan details
   const PLAN_PRICE = 200; // Amount in INR
-  const RAZORPAY_KEY_ID = "rzp_test_h8n4rYn4Satm4g"; // Use TEST KEY for testing
+  const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_h8n4rYn4Satm4g"; // Fallback to test key if not set
 
   const handlePayment = async () => {
     if (!user) {

@@ -145,7 +145,7 @@ export default function PricingSection6() {
     setLoadingPlan(planDisplayName);
 
     const options = {
-      key: "rzp_test_SfjvFlThIyJM2r", 
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SfjvFlThIyJM2r", 
       amount: amount * 100, 
       currency: "INR",
       name: "FinMind AI",
