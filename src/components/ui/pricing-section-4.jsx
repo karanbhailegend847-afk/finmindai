@@ -144,25 +144,34 @@ export default function PricingSection6() {
 
     setLoadingPlan(planDisplayName);
 
+    // Get the key and log it (partially for security) to help debug
+    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    
+    if (!razorpayKey) {
+      console.warn("VITE_RAZORPAY_KEY_ID is missing from environment variables. Falling back to default test key.");
+    }
+
     const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SfjvFlThIyJM2r", 
-      amount: amount * 100, 
+      key: razorpayKey || "rzp_test_SfjvFlThIyJM2r", 
+      amount: Math.round(amount * 100), // Ensure it's an integer
       currency: "INR",
       name: "FinMind AI",
       description: `Subscription for ${planDisplayName} Plan`,
       image: "/favicon.png",
       handler: async function (response) {
         try {
+          console.log("Payment successful, verifying with system...", response.razorpay_payment_id);
           const success = await upgradePlan(planKey);
           if (success) {
             alert("Payment Successful! Welcome to " + planDisplayName);
             navigate("/dashboard");
           } else {
-            alert("Payment verified but upgrade failed. Please contact support.");
+            console.error("Payment was successful but Firestore upgrade failed.");
+            alert("Payment was successful but we couldn't update your account. Please take a screenshot of your payment ID and contact support.");
           }
         } catch (error) {
           console.error("Upgrade error:", error);
-          alert("Error upgrading account. Please contact support.");
+          alert("Error verifying payment. If the amount was deducted, please contact support with your payment ID.");
         } finally {
           setLoadingPlan(null);
         }
@@ -184,13 +193,26 @@ export default function PricingSection6() {
 
     try {
       if (!window.Razorpay) {
-        throw new Error("Razorpay SDK not loaded");
+        // Attempt to load the script dynamically if missing
+        console.log("Razorpay SDK missing, attempting to load...");
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        script.onload = () => {
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        };
+        script.onerror = () => {
+          throw new Error("Failed to load Razorpay SDK. Please check your internet connection.");
+        };
+        document.body.appendChild(script);
+      } else {
+        const rzp = new window.Razorpay(options);
+        rzp.open();
       }
-      const rzp = new window.Razorpay(options);
-      rzp.open();
     } catch (err) {
       console.error("Razorpay open error:", err);
-      alert("Failed to load Razorpay payment gateway. Please check your internet connection and try again.");
+      alert(`Oops! Something went wrong. ${err.message || 'Payment Initialization Failed'}`);
       setLoadingPlan(null);
     }
   };
@@ -267,7 +289,7 @@ export default function PricingSection6() {
               delay: 0,
             }}
           >
-            Plans that power your growth
+            Designed for dominance
           </VerticalCutReveal>
         </h2>
 
