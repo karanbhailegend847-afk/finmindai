@@ -144,15 +144,11 @@ export default function PricingSection6() {
 
     setLoadingPlan(planDisplayName);
 
-    // Get the key and log it (partially for security) to help debug
-    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-    
-    if (!razorpayKey) {
-      console.warn("VITE_RAZORPAY_KEY_ID is missing from environment variables. Falling back to default test key.");
-    }
+    // Hardcoded live key as requested
+    const razorpayKey = "rzp_live_S8R3zHuEArvQhG";
 
     const options = {
-      key: razorpayKey || "rzp_test_SfjvFlThIyJM2r", 
+      key: razorpayKey, 
       amount: Math.round(amount * 100), // Ensure it's an integer
       currency: "INR",
       name: "FinMind AI",
