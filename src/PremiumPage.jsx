@@ -24,7 +24,7 @@ const PremiumPage = () => {
     try {
       const options = {
         key: RAZORPAY_KEY_ID,
-        amount: PLAN_PRICE * 100, // Razorpay expects paise (INR * 100)
+        amount: Math.round(PLAN_PRICE * 100), // Ensure it's an integer
         currency: "INR",
         name: "FinMind AI",
         description: "Premium Monthly Subscription",
@@ -56,13 +56,29 @@ const PremiumPage = () => {
         }
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      if (!window.Razorpay) {
+        console.log("Razorpay SDK missing on Premium page, attempting to load...");
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        script.onload = () => {
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        };
+        script.onerror = () => {
+          alert("Failed to load payment gateway. Please check your connection.");
+          setLoading(false);
+        };
+        document.body.appendChild(script);
+      } else {
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      }
     } catch (error) {
       console.error("Payment error:", error);
       alert("Failed to initialize payment. Please try again.");
     } finally {
-      setLoading(false);
+      if (window.Razorpay) setLoading(false);
     }
   };
 
