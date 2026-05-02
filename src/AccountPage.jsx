@@ -30,10 +30,10 @@ const AccountPage = () => {
             className="flex items-center gap-2 text-text-secondary hover:text-white transition-colors group"
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span>Dashboard</span>
+            <span className="hidden sm:inline">Dashboard</span>
           </button>
           <h1 className="font-display font-bold text-lg">Account Settings</h1>
-          <div className="w-[100px]" /> {/* Spacer */}
+          <div className="w-8 sm:w-[100px]" /> {/* Smaller Spacer on mobile */}
         </div>
       </nav>
 

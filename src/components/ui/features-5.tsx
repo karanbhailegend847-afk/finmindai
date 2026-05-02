@@ -149,35 +149,35 @@ function MockTableDashboard() {
             </div>
 
             <div className="flex-1 overflow-hidden">
-                <div className="grid grid-cols-4 pb-4 border-b border-white/5 text-xs uppercase tracking-widest text-text-secondary/50 font-bold">
+                <div className="grid grid-cols-3 sm:grid-cols-4 pb-4 border-b border-white/5 text-[10px] sm:text-xs uppercase tracking-widest text-text-secondary/50 font-bold">
                     <div>Status</div>
                     <div>Source</div>
-                    <div className="text-right">Velocity / Amount</div>
-                    <div className="text-right pr-4">Node</div>
+                    <div className="text-right sm:text-right">Amount</div>
+                    <div className="hidden sm:block text-right pr-4">Node</div>
                 </div>
                 
                 <div className="divide-y divide-white/5">
                     {[
-                        { status: 'Success', source: 'vault_alpha_main@finmind.ai', amount: '+$1,240.22', color: 'bg-green-500' },
-                        { status: 'Success', source: 'inst_node_b@capital.vanguard', amount: '+$2,842.00', color: 'bg-green-500' },
-                        { status: 'Processing', source: 'gemini_stream_idx@indexing.ai', amount: '+$1.8k Pending', color: 'bg-primary' },
+                        { status: 'Success', source: 'vault_alpha_main@finmind.ai', amount: '+$1,240', color: 'bg-green-500' },
+                        { status: 'Success', source: 'inst_node_b@capital.vanguard', amount: '+$2,842', color: 'bg-green-500' },
+                        { status: 'Processing', source: 'gemini_stream_idx@indexing.ai', amount: '+$1.8k', color: 'bg-primary' },
                         { status: 'Success', source: 'liquidity_pool_c@uniswap.v3', amount: '+$631.45', color: 'bg-green-500' },
                         { status: 'Failed', source: 'legacy_sync@old_vault.com', amount: '--', color: 'bg-red-500' },
                     ].map((row, i) => (
                         <motion.div 
                             key={i} 
-                            className="grid grid-cols-4 py-6 items-center hover:bg-white/[0.02] transition-colors"
+                            className="grid grid-cols-3 sm:grid-cols-4 py-4 sm:py-6 items-center hover:bg-white/[0.02] transition-colors"
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.5 + i * 0.1 }}
                         >
-                            <div className="flex items-center gap-3">
-                                <div className={`size-2 rounded-full ${row.color}`} />
-                                <span className="text-sm font-medium">{row.status}</span>
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <div className={`size-1.5 sm:size-2 rounded-full ${row.color}`} />
+                                <span className="text-[11px] sm:text-sm font-medium">{row.status}</span>
                             </div>
-                            <div className="text-sm text-text-secondary font-mono truncate">{row.source}</div>
-                            <div className={`text-right text-sm font-bold ${row.amount.includes('+') ? 'text-green-400' : 'text-text-secondary'}`}>{row.amount}</div>
-                            <div className="flex justify-end pr-4">
+                            <div className="text-[11px] sm:text-sm text-text-secondary font-mono truncate">{row.source}</div>
+                            <div className={`text-right text-[11px] sm:text-sm font-bold ${row.amount.includes('+') ? 'text-green-400' : 'text-text-secondary'}`}>{row.amount}</div>
+                            <div className="hidden sm:flex justify-end pr-4">
                                 <div className="size-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
                                     <ChevronRight className="size-4 text-text-secondary" />
                                 </div>

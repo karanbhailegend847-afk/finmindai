@@ -391,7 +391,7 @@ const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
           <div
             ref={ref}
             className={cn(
-              "rounded-3xl border border-[#4c3a69] bg-[#1a1625] p-2 shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300",
+              "rounded-3xl border border-[#4c3a69] bg-[#1a1625] p-1.5 sm:p-2 shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 max-w-full overflow-hidden",
               isLoading && "border-primary/70",
               className
             )}

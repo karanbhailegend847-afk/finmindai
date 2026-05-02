@@ -112,6 +112,7 @@ const DashboardLayout = () => {
   const [chats, setChats] = useState(() => loadChats(user?.uid));
   const [activeChatId, setActiveChatId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Persist chats to localStorage whenever they change
   useEffect(() => {
@@ -250,11 +251,33 @@ const DashboardLayout = () => {
 
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F] text-text-primary flex selection:bg-primary/30 overflow-hidden">
-      <aside className="w-[280px] fixed h-screen border-r border-white/5 bg-[#0D0D12]/80 backdrop-blur-2xl z-20 flex flex-col shadow-[20px_0_40px_rgba(0,0,0,0.3)] overflow-hidden">
+    <div className="min-h-screen bg-[#0A0A0F] text-text-primary flex selection:bg-primary/30 overflow-hidden relative">
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      <aside className={cn(
+        "w-[280px] fixed top-0 left-0 h-screen border-r border-white/5 bg-[#0D0D12]/80 backdrop-blur-2xl z-[100] flex flex-col shadow-[20px_0_40px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-in-out lg:translate-x-0 overflow-hidden",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
         {/* ... existing sidebar content ... */}
-        <div className="font-display font-bold text-2xl tracking-tighter flex items-center gap-2 px-7 pt-8 pb-6 cursor-pointer group shrink-0" onClick={() => navigate('/')}>
-          <span className="relative z-10 text-white tracking-tight">FinMind<span className="text-primary">AI</span></span>
+        <div className="font-display font-bold text-2xl tracking-tighter flex items-center justify-between px-7 pt-8 pb-6 cursor-pointer group shrink-0">
+          <span className="relative z-10 text-white tracking-tight" onClick={() => navigate('/')}>FinMind<span className="text-primary">AI</span></span>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-2 rounded-xl bg-white/5 text-text-secondary hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar min-h-0 flex flex-col">
@@ -337,7 +360,10 @@ const DashboardLayout = () => {
                         key={chat.id}
                         chat={chat}
                         isActive={activeChatId === chat.id}
-                        onClick={() => setActiveChatId(chat.id)}
+                        onClick={() => {
+                          setActiveChatId(chat.id);
+                          if (window.innerWidth < 768) setIsSidebarOpen(false);
+                        }}
                         onDelete={handleDeleteChat}
                       />
                     ))}
@@ -375,7 +401,25 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
-      <main className="ml-[280px] flex-1 flex flex-row h-screen relative overflow-hidden">
+      <main className="flex-1 flex flex-col lg:ml-[280px] w-full max-w-full h-screen relative overflow-hidden overflow-x-hidden">
+        {/* Mobile/Tablet Header */}
+        <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0D0D12]/80 backdrop-blur-xl z-20">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2.5 rounded-xl bg-white/5 text-white/70 hover:text-white transition-colors border border-white/5 shadow-inner"
+            >
+              <LayoutDashboard size={20} />
+            </button>
+            <div className="font-display font-bold text-xl tracking-tighter">
+              FinMind<span className="text-primary">AI</span>
+            </div>
+          </div>
+          
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-primary/20 border border-white/10" onClick={() => navigate('/account')}>
+            {user?.email?.[0].toUpperCase() ?? 'U'}
+          </div>
+        </div>
         {/* Background ambient glow */}
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />

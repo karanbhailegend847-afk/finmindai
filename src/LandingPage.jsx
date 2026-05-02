@@ -83,14 +83,14 @@ const LandingPage = () => {
           <motion.div 
             style={{ y }}
             initial="hidden" animate="visible" variants={staggerContainer}
-            className="relative z-[2] max-w-5xl mx-auto flex flex-col items-center pt-20"
+            className="relative z-[2] max-w-5xl mx-auto flex flex-col items-center pt-10 md:pt-20"
           >
-            <motion.div variants={fadeUp} className="mb-8 px-4 py-1.5 rounded-pill border border-border/50 bg-surface/30 backdrop-blur-sm text-text-secondary text-xs font-bold uppercase tracking-widest flex items-center gap-2 group cursor-pointer hover:border-primary/50 transition-colors">
+            <motion.div variants={fadeUp} className="mb-4 md:mb-8 px-4 py-1.5 rounded-pill border border-border/50 bg-surface/30 backdrop-blur-sm text-text-secondary text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center gap-2 group cursor-pointer hover:border-primary/50 transition-colors">
               <span className="text-primary group-hover:animate-pulse">✦</span> Gemini 1.5 Pro Integrated
             </motion.div>
             
-            <motion.h1 variants={fadeUp} className="font-display font-black text-5xl md:text-8xl leading-[1] tracking-tighter mb-8 drop-shadow-2xl">
-              Wealth tracking, <br />
+            <motion.h1 variants={fadeUp} className="font-display font-black text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-[1.2] sm:leading-[1.1] md:leading-[1] tracking-tighter mb-6 md:mb-8 drop-shadow-2xl px-4">
+              Wealth tracking, <br className="hidden xs:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-primary-dim">reimagined.</span>
             </motion.h1>
             

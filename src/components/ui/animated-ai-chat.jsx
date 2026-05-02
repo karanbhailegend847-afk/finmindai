@@ -426,7 +426,7 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
     return (
         <motion.div
             className={cn(
-                "flex gap-3 max-w-3xl mx-auto w-full px-6",
+                "flex gap-3 max-w-3xl mx-auto w-full px-4 md:px-6",
                 isUser ? "flex-row-reverse" : "flex-row"
             )}
             initial={{ opacity: 0, y: 12 }}
@@ -479,7 +479,7 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
                             <div>{cleanContent}</div>
                         ) : (
                             <div className="flex flex-col gap-3">
-                                <div className="chat-markdown overflow-x-auto">
+                                <div className="chat-markdown overflow-x-auto break-words whitespace-pre-wrap">
                                     {isLast && !isTypingComplete ? (
                                         <TypingEffect 
                                             content={cleanContent} 
@@ -1436,7 +1436,7 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
                         ref={messagesContainerRef}
                         className="flex-1 overflow-y-auto relative z-10 py-8 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent scroll-smooth"
                     >
-                        <div className="flex flex-col gap-6 max-w-4xl mx-auto px-6">
+                        <div className="flex flex-col gap-6 max-w-4xl mx-auto px-4 md:px-6">
                             {messages.map((msg, idx) => (
                                 <MessageBubble
                                     key={msg.timestamp + '-' + idx}
@@ -1460,14 +1460,14 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center relative z-10 px-6">
+                    <div className="flex-1 flex flex-col items-center justify-center relative z-10 px-4 md:px-6">
                         <motion.div 
                             className="w-full max-w-xl text-center mb-10"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                         >
-                            <h2 className="text-4xl font-bold tracking-tight text-white/90 mb-3 leading-tight">How can I help with your wealth strategy today?</h2>
+                            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white/90 mb-3 leading-tight">How can I help with your wealth strategy today?</h2>
                             <p className="text-text-secondary/60 text-xs font-bold tracking-widest uppercase font-mono bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5">FinMind Intelligence Engine Active</p>
                         </motion.div>
                         
@@ -1479,7 +1479,7 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
                 
                 {/* Input area at bottom — only if has messages */}
                 {hasMessages && (
-                    <div className="relative z-10 p-6 pt-2">
+                    <div className="relative z-10 p-4 md:p-6 pt-2">
                         <div className="w-full max-w-3xl mx-auto">
                             {renderInputBox()}
                         </div>
