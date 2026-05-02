@@ -372,41 +372,84 @@ export async function* streamSendMessageToGemini(messages, plan = 'free') {
     generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
   };
 
-  const keyIdx = getStoredKeyIndex() % GEMINI_API_KEYS.length;
-  const activeKey = GEMINI_API_KEYS[keyIdx];
-  const url = getGeminiUrl(activeKey, 0, true);
+  let currentIndex = getStoredKeyIndex();
+  let totalAttempts = 0;
+  const maxKeyAttempts = GEMINI_API_KEYS.length;
+  let lastError = "Unknown error";
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  while (totalAttempts < (maxKeyAttempts * GEMINI_MODELS.length)) {
+    const keyIdx = currentIndex % maxKeyAttempts;
+    const activeKey = GEMINI_API_KEYS[keyIdx];
+    const modelIdx = Math.floor(totalAttempts / maxKeyAttempts);
+    const url = getGeminiUrl(activeKey, modelIdx, true);
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || "Streaming failed");
-  }
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
+      if (response.ok) {
+        setStoredKeyIndex(currentIndex % maxKeyAttempts);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
 
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        try {
-          const data = JSON.parse(line.substring(6));
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) yield text;
-        } catch (e) {}
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.substring(6));
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) yield text;
+              } catch (e) {}
+            }
+          }
+        }
+        return; // Success, exit generator
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        lastError = errorData?.error?.message || response.status.toString();
+        
+        const isRetryableError = 
+          lastError.toLowerCase().includes('quota') || 
+          lastError.toLowerCase().includes('high demand') ||
+          lastError.toLowerCase().includes('overloaded') ||
+          response.status === 429 || 
+          response.status === 503 || 
+          response.status === 500;
+
+        console.warn(`[FinMind AI] Stream Key #${keyIdx + 1} failed:`, lastError);
+
+        if (isRetryableError) {
+          currentIndex++;
+          totalAttempts++;
+          // Minimal delay for streaming retry to keep it feeling fast
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        throw new Error(lastError);
       }
+    } catch (error) {
+      if (error.message === lastError) {
+        // already handled by response.ok check
+      } else {
+        lastError = error.message;
+        totalAttempts++;
+        currentIndex++;
+      }
+      if (totalAttempts >= (maxKeyAttempts * GEMINI_MODELS.length)) break;
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
+
+  throw new Error(`FinMind AI access failed. Reason: ${lastError}`);
 }
