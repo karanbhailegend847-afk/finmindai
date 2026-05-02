@@ -3,12 +3,13 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDmsMho5cOuRqEBmysmKaaDHIEafU7iLJA",
-  authDomain: "finmind-ai.firebaseapp.com",
-  projectId: "finmind-ai",
-  storageBucket: "finmind-ai.appspot.com",
-  messagingSenderId: "1086255152285",
-  appId: "1:1086255152285:web:8e1d611d9296419a955d"
+  apiKey: "AIzaSyAWQaKFgcIfADrTrfCJpUYaV2ilYj-QtI8",
+  authDomain: "snapshrink.firebaseapp.com",
+  projectId: "snapshrink",
+  storageBucket: "snapshrink.firebasestorage.app",
+  messagingSenderId: "776675106456",
+  appId: "1:776675106456:web:f667fa8610a129e2b43aed",
+  measurementId: "G-751194RJB9"
 };
 
 // Initialize Firebase
