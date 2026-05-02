@@ -33,9 +33,10 @@ const GEMINI_MODELS = [
   'gemini-1.5-pro'           // High Reasoning (Last Resort)
 ];
 
-const getGeminiUrl = (key, modelIdx = 0) => {
+const getGeminiUrl = (key, modelIdx = 0, stream = false) => {
   const model = GEMINI_MODELS[modelIdx % GEMINI_MODELS.length];
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+  const method = stream ? 'streamGenerateContent' : 'generateContent';
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:${method}?key=${key}${stream ? '&alt=sse' : ''}`;
 };
 
 // Track the current key index in localStorage to persist across refreshes
@@ -326,4 +327,86 @@ ${KNOWLEDGE_CONTEXT}
   }
 
   throw new Error(`FinMind AI access failed. Reason: ${lastError}`);
+}
+
+/**
+ * Stream messages from Gemini API
+ */
+export async function* streamSendMessageToGemini(messages, plan = 'free') {
+  if (!GEMINI_API_KEYS || GEMINI_API_KEYS.length === 0) {
+    throw new Error('No Gemini API keys found.');
+  }
+
+  if (!KNOWLEDGE_CONTEXT && !IS_KNOWLEDGE_LOADING) {
+    await loadKnowledgeBase();
+  }
+
+  const contents = messages.map((msg) => {
+    const parts = [];
+    if (msg.content) parts.push({ text: msg.content });
+    if (msg.images && msg.images.length > 0) {
+      msg.images.forEach(imgBase64 => {
+        const match = imgBase64.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
+        if (match) {
+          parts.push({
+            inlineData: {
+              mimeType: match[1],
+              data: match[2]
+            }
+          });
+        }
+      });
+    }
+    return {
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: parts.length > 0 ? parts : [{ text: '' }]
+    };
+  });
+
+  const activeModules = plan === 'free' ? "NONE" : plan === 'starter' ? MODULES.TRADE_SIGNAL + MODULES.MARKET_SIMULATION : Object.values(MODULES).join('\n');
+  const finalSystemPrompt = `${BASE_PROMPT}\n\n## ACTIVE MODULES\n${activeModules}\n\n${KNOWLEDGE_CONTEXT}`;
+
+  const body = {
+    systemInstruction: { parts: [{ text: finalSystemPrompt }] },
+    contents,
+    generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+  };
+
+  const keyIdx = getStoredKeyIndex() % GEMINI_API_KEYS.length;
+  const activeKey = GEMINI_API_KEYS[keyIdx];
+  const url = getGeminiUrl(activeKey, 0, true);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || "Streaming failed");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.substring(6));
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) yield text;
+        } catch (e) {}
+      }
+    }
+  }
 }

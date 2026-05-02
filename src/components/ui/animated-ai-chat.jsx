@@ -417,7 +417,7 @@ const parseSpecialBlocks = (content, isStreaming) => {
 // Message bubble component
 function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
     const isUser = message.role === 'user';
-    const [isTypingComplete, setIsTypingComplete] = useState(!isLast || isUser);
+    const [isTypingComplete, setIsTypingComplete] = useState(!isLast || isUser || message.isStreaming);
 
     const { cleanContent, charts, sources, scenario, tradeSignal, marketMood, fraudDetection, portfolioStrategy, marketSimulation } = isUser 
         ? { cleanContent: message.content, charts: [], sources: [], scenario: null, tradeSignal: null, marketMood: null, fraudDetection: null, portfolioStrategy: null, marketSimulation: null } 
@@ -480,7 +480,7 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
                         ) : (
                             <div className="flex flex-col gap-3">
                                 <div className="chat-markdown overflow-x-auto break-words whitespace-pre-wrap">
-                                    {isLast && !isTypingComplete ? (
+                                    {isLast && !isTypingComplete && !message.isStreaming ? (
                                         <TypingEffect 
                                             content={cleanContent} 
                                             onComplete={() => setIsTypingComplete(true)} 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Settings, Plus, MessageSquare, MoreHorizontal, Search, Trash2, LogOut, Coins, Crown, User, LayoutDashboard, PenTool, X } from 'lucide-react';
 import { AnimatedAIChat } from './components/ui/animated-ai-chat';
-import { sendMessageToGemini } from './lib/gemini';
+import { sendMessageToGemini, streamSendMessageToGemini } from './lib/gemini';
 import { useAuth } from './context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -147,6 +147,32 @@ const DashboardLayout = () => {
     );
   };
 
+  const updateAIMessage = (chatId, chunk, isStreaming = true) => {
+    setChats((prev) =>
+      prev.map((c) => {
+        if (c.id !== chatId) return c;
+        const lastMsg = c.messages[c.messages.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
+          const newMessages = [...c.messages];
+          newMessages[newMessages.length - 1] = {
+            ...lastMsg,
+            content: lastMsg.content + chunk,
+            isStreaming
+          };
+          return { ...c, messages: newMessages };
+        } else {
+          return {
+            ...c,
+            messages: [
+              ...c.messages,
+              { role: 'assistant', content: chunk, timestamp: Date.now(), isStreaming }
+            ]
+          };
+        }
+      })
+    );
+  };
+
   const fetchAIResponse = async (chatId) => {
     try {
       let currentMessages = [];
@@ -162,8 +188,16 @@ const DashboardLayout = () => {
         images: m.images || []
       }));
 
-      const aiResponse = await sendMessageToGemini(apiMessages, userData?.plan || 'free');
-      appendAIMessage(chatId, aiResponse);
+      const stream = streamSendMessageToGemini(apiMessages, userData?.plan || 'free');
+      let fullResponse = "";
+      
+      for await (const chunk of stream) {
+        fullResponse += chunk;
+        updateAIMessage(chatId, chunk, true);
+      }
+      
+      // Final update to mark as complete
+      updateAIMessage(chatId, "", false);
       
       // Deduct credits only after success
       await deductCredits(3);
