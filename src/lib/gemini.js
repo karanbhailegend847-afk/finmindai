@@ -1,27 +1,7 @@
-const getKeysFromEnv = () => {
-  const multiKeys = import.meta.env.VITE_GEMINI_API_KEYS;
-  let keys = [];
-  
-  if (multiKeys) {
-    keys = multiKeys.split(/[,\n]+/).map(k => k.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
-  } else {
-    const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (singleKey) {
-      keys = [singleKey.trim().replace(/^["']|["']$/g, '')];
-    }
-  }
-
-  // Debug logging with masking
-  console.log(`[FinMind AI] Detected ${keys.length} API keys:`);
-  keys.forEach((k, i) => {
-    const masked = k.length > 8 ? `${k.slice(0, 4)}...${k.slice(-4)}` : '****';
-    console.log(`  Key #${i + 1}: ${masked}`);
-  });
-
-  return keys;
-};
-
-const GEMINI_API_KEYS = getKeysFromEnv();
+const GEMINI_API_KEYS = [
+  "AIzaSyBUI4PV9uJJoWFU02Be_X2XwkGi60blb30",
+  "AIzaSyDmsMho5cOuRqEBmysmKaaDHIEafU7iLJA"
+];
 
 const GEMINI_MODELS = [
   'gemini-2.0-flash',        // Standard High Speed
