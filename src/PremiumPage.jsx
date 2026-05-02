@@ -11,7 +11,7 @@ const PremiumPage = () => {
 
   // Configuration - Plan details
   const PLAN_PRICE = 200; // Amount in INR
-  const RAZORPAY_KEY_ID = "rzp_live_S8R3zHuEArvQhG"; // Hardcoded live key as requested
+  const RAZORPAY_KEY_ID = "rzp_live_Satm4gnMnwdY91"; // Hardcoded live key as requested
 
   const handlePayment = async () => {
     if (!user) {

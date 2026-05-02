@@ -145,7 +145,7 @@ export default function PricingSection6() {
     setLoadingPlan(planDisplayName);
 
     // Hardcoded live key as requested
-    const razorpayKey = "rzp_live_S8R3zHuEArvQhG";
+    const razorpayKey = "rzp_live_Satm4gnMnwdY91";
 
     const options = {
       key: razorpayKey, 
