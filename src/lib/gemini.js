@@ -1,14 +1,16 @@
 const getKeysFromEnv = () => {
   const multiKeys = import.meta.env.VITE_GEMINI_API_KEYS;
+  const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
   let keys = [];
   
   if (multiKeys) {
-    keys = multiKeys.split(/[,\n]+/).map(k => k.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
-  } else {
-    const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (singleKey) {
-      keys = [singleKey.trim().replace(/^["']|["']$/g, '')];
-    }
+    // Robust parsing for various separators: commas, newlines, spaces
+    keys = multiKeys.split(/[,\s\n\r]+/).map(k => k.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+  } 
+  
+  // Also check single key if no multi-keys found or as a fallback
+  if (keys.length === 0 && singleKey) {
+    keys = [singleKey.trim().replace(/^["']|["']$/g, '')];
   }
 
   // Debug logging with masking
