@@ -26,10 +26,7 @@ const getKeysFromEnv = () => {
 const GEMINI_API_KEYS = getKeysFromEnv();
 
 const GEMINI_MODELS = [
-  'gemini-2.0-flash',        // Standard High Speed
-  'gemini-2.0-flash-lite',   // Low Latency Fallback
-  'gemini-1.5-flash',        // High Stability Fallback
-  'gemini-1.5-pro'           // High Reasoning (Last Resort)
+  'gemini-2.5-flash'         // User Requested Exclusive Model
 ];
 
 const getGeminiUrl = (key, modelIdx = 0, stream = false) => {
