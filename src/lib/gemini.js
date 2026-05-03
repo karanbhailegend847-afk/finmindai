@@ -29,9 +29,6 @@ const GEMINI_MODELS = [
   'gemini-2.0-flash',        // Standard High Speed
   'gemini-2.0-flash-lite',   // Low Latency Fallback
   'gemini-1.5-flash',        // High Stability Fallback
-  'gemini-2.5-flash-lite',   // User Requested (Beta/Private)
-  'gemini-2.5-pro',         // User Requested (Beta/Private)
-  'gemini-3-flash',          // User Requested (Future Proofing)
   'gemini-1.5-pro'           // High Reasoning (Last Resort)
 ];
 
@@ -385,12 +382,17 @@ export async function* streamSendMessageToGemini(messages, plan = 'free') {
     const modelIdx = Math.floor(totalAttempts / maxKeyAttempts);
     const url = getGeminiUrl(activeKey, modelIdx, true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         setStoredKeyIndex(currentIndex % maxKeyAttempts);
@@ -429,27 +431,29 @@ export async function* streamSendMessageToGemini(messages, plan = 'free') {
           response.status === 503 || 
           response.status === 500;
 
-        console.warn(`[FinMind AI] Stream Key #${keyIdx + 1} failed:`, lastError);
+        console.warn(`[FinMind AI] Stream Key #${keyIdx + 1} failed with ${currentModel}:`, lastError);
 
         if (isRetryableError) {
           currentIndex++;
           totalAttempts++;
-          // Minimal delay for streaming retry to keep it feeling fast
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Minimal delay to keep it fast
+          await new Promise(resolve => setTimeout(resolve, 200));
           continue;
         }
         throw new Error(lastError);
       }
     } catch (error) {
-      if (error.message === lastError) {
-        // already handled by response.ok check
-      } else {
-        lastError = error.message;
-        totalAttempts++;
-        currentIndex++;
-      }
+      clearTimeout(timeoutId);
+      const currentModel = GEMINI_MODELS[Math.floor(totalAttempts / maxKeyAttempts) % GEMINI_MODELS.length];
+      const errorMessage = error.name === 'AbortError' ? 'Request timed out (15s)' : error.message;
+      console.error(`[FinMind AI] Request failed (${currentModel}):`, errorMessage);
+      
+      lastError = errorMessage;
+      totalAttempts++;
+      currentIndex++;
+      
       if (totalAttempts >= (maxKeyAttempts * GEMINI_MODELS.length)) break;
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
 
