@@ -380,6 +380,7 @@ export async function* streamSendMessageToGemini(messages, plan = 'free') {
     const keyIdx = currentIndex % maxKeyAttempts;
     const activeKey = GEMINI_API_KEYS[keyIdx];
     const modelIdx = Math.floor(totalAttempts / maxKeyAttempts);
+    const currentModel = GEMINI_MODELS[modelIdx % GEMINI_MODELS.length];
     const url = getGeminiUrl(activeKey, modelIdx, true);
 
     const controller = new AbortController();
@@ -444,7 +445,6 @@ export async function* streamSendMessageToGemini(messages, plan = 'free') {
       }
     } catch (error) {
       clearTimeout(timeoutId);
-      const currentModel = GEMINI_MODELS[Math.floor(totalAttempts / maxKeyAttempts) % GEMINI_MODELS.length];
       const errorMessage = error.name === 'AbortError' ? 'Request timed out (15s)' : error.message;
       console.error(`[FinMind AI] Request failed (${currentModel}):`, errorMessage);
       
