@@ -1,7 +1,7 @@
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { ArrowUp, Paperclip, Square, X, Globe, BrainCog, FolderCode, Sparkles, BarChart3, Zap, ShieldCheck, TrendingUp, LineChart, Cpu, Search, Activity, Plus, ChevronRight, Image, Lightbulb, Telescope, Folder, Crown } from "lucide-react";
+import { ArrowUp, Paperclip, Square, X, Globe, BrainCog, FolderCode, Sparkles, BarChart3, Zap, ShieldCheck, TrendingUp, LineChart, Cpu, Search, Activity, Plus, Image, Lightbulb, Telescope, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 
@@ -732,20 +732,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                     );
                   })}
 
-                  <div className="h-[1px] bg-[#2A2339] my-1 mx-2" />
 
-                  <button 
-                    type="button"
-                    className="flex items-center justify-between w-full p-2.5 rounded-lg hover:bg-white/5 transition-colors text-left group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-5 h-5 text-[#9CA3AF] group-hover:text-white">
-                        <Folder className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm font-medium text-[#9CA3AF] group-hover:text-white">Projects</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#4B435C]" />
-                  </button>
                 </div>
               </PopoverContent>
             </Popover>
