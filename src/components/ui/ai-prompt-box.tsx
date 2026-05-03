@@ -512,7 +512,6 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({});
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
   const [isModulesOpen, setIsModulesOpen] = React.useState(false);
-  const [isRecording, setIsRecording] = React.useState(false);
   const [showSearch, setShowSearch] = React.useState(false);
   const [showThink, setShowThink] = React.useState(false);
   const [showCanvas, setShowCanvas] = React.useState(false);
@@ -871,20 +870,14 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                   : "bg-transparent hover:bg-primary/10 text-[#9CA3AF] hover:text-primary"
               )}
               onClick={() => {
-                if (isRecording) setIsRecording(false);
-                else if (hasContent) handleSubmit();
-                else setIsRecording(true);
+                if (hasContent) handleSubmit();
               }}
-              disabled={isLoading && !hasContent}
+              disabled={isLoading || !hasContent}
             >
               {isLoading ? (
                 <Square className="h-4 w-4 fill-white animate-pulse" />
-              ) : isRecording ? (
-                <StopCircle className="h-5 w-5 text-red-500" />
-              ) : hasContent ? (
-                <ArrowUp className="h-4 w-4 text-white" />
               ) : (
-                <Mic className="h-5 w-5 text-primary transition-colors" />
+                <ArrowUp className="h-4 w-4 text-white" />
               )}
             </Button>
           </PromptInputAction>
