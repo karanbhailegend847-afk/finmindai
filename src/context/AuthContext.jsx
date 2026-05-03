@@ -19,6 +19,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [userDataLoading, setUserDataLoading] = useState(true);
   const [syncError, setSyncError] = useState(null);
+  const [showExpirationModal, setShowExpirationModal] = useState(false);
+  const [expiredPlanName, setExpiredPlanName] = useState(null);
 
   // Effect 1: Listen for auth state changes
   useEffect(() => {
@@ -59,6 +61,44 @@ export const AuthProvider = ({ children }) => {
         setUserData(initialData);
       } else {
         const data = userSnap.data();
+        
+        // 1. Check for Subscription Expiry
+        if (data.plan !== 'free' && data.premiumUntil) {
+          const expiryDate = new Date(data.premiumUntil);
+          const now = new Date();
+          
+          if (expiryDate < now) {
+            console.log("Plan expired! Reverting to free tier.");
+            const updates = { 
+              plan: 'free', 
+              isPremium: false, 
+              credits: 20,
+              lastExpiryNotice: now.toISOString() 
+            };
+            await updateDoc(userRef, updates);
+            
+            // Set state to show modal in UI
+            setExpiredPlanName(data.plan);
+            setShowExpirationModal(true);
+
+            // Log notification for email (requires Firebase Trigger Email extension)
+            try {
+              const notifRef = doc(db, 'mail', `${user.uid}_expiry_${Date.now()}`);
+              await setDoc(notifRef, {
+                to: user.email,
+                message: {
+                  subject: 'Your FinMind AI Subscription has Expired',
+                  text: `Hi, your ${data.plan} plan has expired. Your account has been reverted to the free tier. Renew now to keep your pro features!`,
+                  html: `<h3>Plan Expired</h3><p>Hi, your <b>${data.plan}</b> plan has expired. Your account has been reverted to the free tier with 20 daily credits.</p><a href="https://finmindai.com/pricing">Renew Now</a>`,
+                }
+              });
+            } catch (e) {
+              console.warn("Mail trigger failed (is the Trigger Email extension installed?):", e);
+            }
+          }
+        }
+
+        // 2. Handle Daily Reset
         if (data.lastResetDate !== today) {
           console.log("New day detected. Resetting/updating user metadata.");
           const updates = { lastResetDate: today };
@@ -169,7 +209,10 @@ export const AuthProvider = ({ children }) => {
     logout,
     deductCredits,
     upgradePlan,
-    buyPremium: () => upgradePlan('starter') // Default for legacy calls
+    buyPremium: () => upgradePlan('starter'),
+    showExpirationModal,
+    setShowExpirationModal,
+    expiredPlanName
   };
 
   return (

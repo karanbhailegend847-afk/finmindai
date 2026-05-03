@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from './lib/utils';
+import SubscriptionExpiryModal from './components/SubscriptionExpiryModal';
 
 // Helpers for localStorage persistence (Scoped by user UID)
 const getStorageKey = (uid) => `finmind_chats_${uid}`;
@@ -457,6 +458,8 @@ const DashboardLayout = () => {
         {/* Background ambient glow */}
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
+        
+        <SubscriptionExpiryModal />
         
         <div className="relative z-10 flex flex-col flex-1 transition-all duration-500 ease-in-out">
             <AnimatedAIChat
