@@ -426,7 +426,7 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
     return (
         <motion.div
             className={cn(
-                "flex gap-3 max-w-3xl mx-auto w-full px-4 md:px-6",
+                "flex gap-4 max-w-4xl mx-auto w-full px-4 md:px-8",
                 isUser ? "flex-row-reverse" : "flex-row"
             )}
             initial={{ opacity: 0, y: 12 }}
@@ -435,30 +435,30 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
         >
             {/* Avatar */}
             <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1",
+                "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 border border-white/5",
                 isUser
-                    ? "bg-primary/20 text-primary"
+                    ? "bg-[#2A2B32] text-[#D1D5DB]"
                     : "bg-gradient-to-br from-primary to-violet-600 text-white"
             )}>
-                {isUser ? <User size={15} /> : <Bot size={15} />}
+                {isUser ? <User size={14} /> : <Bot size={14} />}
             </div>
 
             {/* Message */}
             <div className={cn(
-                "flex-1 min-w-0",
-                isUser ? "text-right" : "text-left"
+                "flex-1 min-w-0 flex flex-col",
+                isUser ? "items-end" : "items-start"
             )}>
                 <div className={cn(
-                    "text-xs font-medium mb-1.5",
-                    isUser ? "text-primary/70" : "text-text-secondary/60"
+                    "text-[10px] font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest",
+                    isUser ? "text-right text-text-secondary/40" : "text-left text-primary/40"
                 )}>
                     {isUser ? 'You' : 'FinMind AI'}
                 </div>
                 <div className={cn(
-                    "inline-block text-[14.5px] leading-relaxed rounded-2xl px-4 py-3 max-w-full relative",
+                    "text-[15px] leading-7 max-w-[85%] relative",
                     isUser
-                        ? "bg-primary/15 text-text-primary rounded-tr-sm text-left"
-                        : "bg-surface border border-border text-text-primary/90 rounded-tl-sm"
+                        ? "bg-[#2F2F2F] text-white rounded-3xl px-5 py-2.5 shadow-sm"
+                        : "text-white/90 w-full py-1"
                 )}>
                     {/* Message Content */}
                     <div className="flex flex-col gap-3">
@@ -1137,23 +1137,22 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
 function TypingIndicator({ mode = 'default' }) {
     return (
         <motion.div
-            className="flex gap-3 max-w-3xl mx-auto w-full px-6"
+            className="flex gap-4 max-w-4xl mx-auto w-full px-4 md:px-8 mt-2"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
         >
-            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 bg-gradient-to-br from-primary to-violet-600 text-white shadow-lg shadow-primary/20 font-black text-[10px]">
-                FM
+            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 bg-gradient-to-br from-primary to-violet-600 text-white shadow-sm font-black text-[10px]">
+                <Bot size={14} />
             </div>
-            <div className="text-left">
-                <div className="text-[10px] font-bold mb-1 text-primary uppercase tracking-widest">FinMind Intelligence</div>
-                <div className="inline-flex items-center gap-3 bg-[#12121A]/80 backdrop-blur-xl border border-white/5 rounded-2xl rounded-tl-sm px-5 py-3.5 shadow-2xl">
+            <div className="flex-1 pt-2">
+                <div className="flex items-center gap-3">
                     <TypingDots />
-                    <span className="text-[11px] font-medium text-text-secondary/60 italic">
+                    <span className="text-[11px] font-medium text-text-secondary/40 italic uppercase tracking-widest">
                         {mode === 'think' ? 'Simulating financial models...' : 
                          mode === 'search' ? 'Scanning global markets...' : 
-                         'Processing request...'}
+                         'Thinking...'}
                     </span>
                 </div>
             </div>
