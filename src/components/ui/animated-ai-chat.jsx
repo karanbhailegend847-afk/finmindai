@@ -427,21 +427,18 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
         <motion.div
             className={cn(
                 "flex gap-4 max-w-4xl mx-auto w-full px-4 md:px-8",
-                isUser ? "flex-row-reverse" : "flex-row"
+                isUser ? "justify-end" : "justify-start"
             )}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
         >
-            {/* Avatar */}
-            <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 border border-white/5",
-                isUser
-                    ? "bg-[#2A2B32] text-[#D1D5DB]"
-                    : "bg-gradient-to-br from-primary to-violet-600 text-white"
-            )}>
-                {isUser ? <User size={14} /> : <Bot size={14} />}
-            </div>
+            {/* Avatar - Only for AI */}
+            {!isUser && (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 border border-white/5 bg-gradient-to-br from-primary to-violet-600 text-white">
+                    <Bot size={14} />
+                </div>
+            )}
 
             {/* Message */}
             <div className={cn(
@@ -449,15 +446,9 @@ function MessageBubble({ message, isLast, onSendMessage, plan = 'free' }) {
                 isUser ? "items-end" : "items-start"
             )}>
                 <div className={cn(
-                    "text-[10px] font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest",
-                    isUser ? "text-right text-text-secondary/40" : "text-left text-primary/40"
-                )}>
-                    {isUser ? 'You' : 'FinMind AI'}
-                </div>
-                <div className={cn(
-                    "text-[15px] leading-7 max-w-[85%] relative",
+                    "text-[15px] leading-7 relative",
                     isUser
-                        ? "bg-[#2F2F2F] text-white rounded-3xl px-5 py-2.5 shadow-sm"
+                        ? "bg-[#2F2F2F] text-white rounded-2xl px-4 py-2 shadow-sm inline-block max-w-[80%] text-left"
                         : "text-white/90 w-full py-1"
                 )}>
                     {/* Message Content */}
