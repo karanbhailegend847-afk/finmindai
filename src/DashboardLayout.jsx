@@ -461,7 +461,7 @@ const DashboardLayout = () => {
         
         <SubscriptionExpiryModal />
         
-        <div className="relative z-10 flex flex-col flex-1 transition-all duration-500 ease-in-out">
+        <div className="relative z-10 flex flex-col flex-1 transition-all duration-500 ease-in-out min-h-0">
             <AnimatedAIChat
                 messages={activeMessages}
                 onSendMessage={handleSendMessage}

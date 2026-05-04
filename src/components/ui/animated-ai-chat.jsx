@@ -1410,10 +1410,10 @@ export function AnimatedAIChat({ messages = [], onSendMessage, isNewChat = true,
     );
 
     return (
-        <div className="flex-1 flex w-full h-full bg-transparent text-white relative overflow-hidden">
+        <div className="flex-1 flex w-full h-full bg-transparent text-white relative overflow-hidden min-h-0">
             {/* Main Chat Area */}
             <div className={cn(
-                "flex-1 flex flex-col transition-all duration-500 ease-in-out relative"
+                "flex-1 flex flex-col transition-all duration-500 ease-in-out relative min-h-0"
             )}>
                 {/* Hidden File Input */}
                 <input 
