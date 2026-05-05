@@ -18,6 +18,13 @@ const AuthPage = () => {
         setError('');
         setLoading(true);
         try {
+            // Restriction: Only @gmail.com allowed
+            if (!email.toLowerCase().endsWith('@gmail.com')) {
+                setError('Only @gmail.com addresses are permitted for registration.');
+                setLoading(false);
+                return;
+            }
+
             if (isLogin) {
                 await loginWithEmail(email, password);
             } else {
@@ -25,7 +32,11 @@ const AuthPage = () => {
             }
             navigate('/dashboard');
         } catch (err) {
-            setError(err.message);
+            if (err.code === 'auth/operation-not-allowed') {
+                setError('Email/Password sign-in is not enabled in your Firebase Console. Please enable it in the Authentication > Sign-in method tab.');
+            } else {
+                setError(err.message);
+            }
         } finally {
             setLoading(false);
         }
